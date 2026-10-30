@@ -47,3 +47,15 @@ export const isNorthSouth = (seat: Seat) => seat === 'north' || seat === 'south'
 
 const PARTNER: Record<Seat, Seat> = { north: 'south', south: 'north', east: 'west', west: 'east' };
 export const partnerOf = (seat: Seat) => PARTNER[seat];
+
+const STRAIN_BY_LETTER: Record<string, Strain> = { C: 'clubs', D: 'diamonds', H: 'hearts', S: 'spades', N: 'noTrump' };
+
+/** "1H" → "1♥", "3N" → "3UT", "P" → "Pas", "X" → "Dobl", "XX" → "Redobl". */
+export function callLabel(call: string): string {
+  if (call === 'P') return 'Pas';
+  if (call === 'X') return 'Dobl';
+  if (call === 'XX') return 'Redobl';
+  return `${call[0]}${STRAIN_LABEL[STRAIN_BY_LETTER[call[1]]]}`;
+}
+
+export const callIsRed = (call: string) => call[1] === 'H' || call[1] === 'D';

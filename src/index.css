@@ -386,6 +386,50 @@ body {
 .lesson-done .tip { margin: 12px 0; }
 .lesson-done .tip p { margin: 0 0 8px; }
 
+/* Bidding */
+.auction { width: 100%; max-width: 420px; margin: 4px auto 8px; border-collapse: collapse; table-layout: fixed; }
+.auction th { font-size: 0.8rem; color: var(--muted); font-weight: 600; padding: 2px 0 4px; border-bottom: 1px solid var(--paper-edge); }
+.auction th.me { color: var(--felt); }
+.auction td { text-align: center; padding: 2px; }
+.call {
+  min-width: 52px;
+  min-height: 32px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: none;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.call.red { color: var(--red); }
+.call:hover { border-color: var(--paper-edge); background: white; }
+.call.selected { border-color: var(--felt); background: #e6f1e3; }
+.call.differs { text-decoration: underline wavy var(--gold); text-underline-offset: 4px; }
+.call.next { display: inline-block; color: var(--muted); cursor: default; line-height: 32px; }
+.call-info { background: white; border: 1px solid var(--paper-edge); border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; }
+.call-info.differs { border-left: 4px solid var(--gold); }
+.call-info p { margin: 0; line-height: 1.45; }
+.call-info p + p { margin-top: 6px; }
+
+.bidding-box { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; max-width: 420px; }
+.bid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.bid-row.special { grid-template-columns: repeat(3, 1fr); }
+.bid {
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  background: white;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.bid.red { color: var(--red); }
+.bid.wide { background: #eef3ec; }
+.bid:hover:not(:disabled) { border-color: var(--felt); }
+.bid:disabled { opacity: 0.25; cursor: default; }
+.center-row { justify-content: center; }
+
 @media (max-width: 480px) {
   .table {
     grid-template-columns: 1fr 1fr;

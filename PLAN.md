@@ -111,6 +111,13 @@ Bridgeforbund underviser i:
 
 Fordi systemet er data, kan det udvides eller skiftes senere uden at røre motoren.
 
+**Sådan blev det lavet (fase 2):** Reglerne ligger i `server/Bridge.Engine/Bidding/BeginnerSystem.cs`
+som en typet liste i C# frem for JSON, så compileren fanger fejl. Hver regel har situation,
+betingelse, melding, hvad meldingen viser (`Shows`: HP-interval, længder, jævn) og et navn.
+Forklaringerne laves ud fra `Shows`. Når ingen regel dækker situationen, placerer botten
+kontrakten ud fra makkers viste hånd (udgang med 25+ HP tilsammen, invitation med 23–24).
+Blackwood og slemmeldinger er endnu ikke med.
+
 ### 4.2 Kortspil: heuristik + double dummy
 
 Det sker i tre trin efter niveau:

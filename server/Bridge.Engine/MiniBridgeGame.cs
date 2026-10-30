@@ -1,6 +1,6 @@
 namespace Bridge.Engine;
 
-public enum GamePhase { Redeal, ChooseContract, Play, Done }
+public enum GamePhase { Redeal, ChooseContract, Bidding, PassedOut, Play, Done }
 
 /// <summary>
 /// A mini-bridge game against the bot, rebuilt from the deal number, the human's contract

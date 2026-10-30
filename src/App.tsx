@@ -1,4 +1,5 @@
 import { DealViewer } from './components/DealViewer';
+import { GameView } from './components/GameView';
 import { LessonList } from './components/LessonList';
 import { LessonView } from './components/LessonView';
 import { MiniBridgeView } from './components/MiniBridgeView';
@@ -25,6 +26,7 @@ export default function App() {
   else if (parts[0] === 'lektioner') page = <LessonList player={player} navigate={navigate} />;
   else if (parts[0] === 'minibridge') page = <MiniBridgeView key={practice} onBack={home} practice={practice} />;
   else if (parts[0] === 'point') page = <DealViewer onBack={home} />;
+  else if (parts[0] === 'spil') page = <GameView onBack={home} />;
   else page = <Home player={player} navigate={navigate} />;
 
   return (
@@ -67,6 +69,10 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
           <strong>Mini-bridge mod bot</strong>
           <span>Bridge uden meldinger. Parret med flest point spiller, og du øver stik, trumf og spilføring.</span>
         </button>
+        <button type="button" className="menu-item" onClick={() => navigate('/spil')}>
+          <strong>Bridge mod bot</strong>
+          <span>Rigtig bridge med meldinger. Du melder med en bot som makker, kan se hvad hver melding betyder, og kan spørge systemet om råd.</span>
+        </button>
         <button type="button" className="menu-item" onClick={() => navigate('/point')}>
           <strong>Tæl point</strong>
           <span>Se alle fire hænder og øv dig i at tælle honnørpoint.</span>
@@ -76,12 +82,12 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
         <h2>På vej</h2>
         <ul className="coming">
           <li>
-            <strong>Meldinger</strong>
-            <span>Lektioner om åbning og svar, og en meldebot der forklarer sine meldinger.</span>
+            <strong>Lektioner om meldinger</strong>
+            <span>Åbning, svar og 1UT-systemet med øvelser.</span>
           </li>
           <li>
-            <strong>Fuldt spil mod bot</strong>
-            <span>Meld og spil med en bot som makker, og få hints undervejs.</span>
+            <strong>Analyse efter spillet</strong>
+            <span>Se hvad der kunne være spillet bedre, og en stærkere bot.</span>
           </li>
         </ul>
       </section>

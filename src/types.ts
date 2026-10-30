@@ -26,7 +26,7 @@ export interface DealInfo {
 }
 
 export type Strain = Suit | 'noTrump';
-export type GamePhase = 'redeal' | 'chooseContract' | 'play' | 'done';
+export type GamePhase = 'redeal' | 'chooseContract' | 'bidding' | 'passedOut' | 'play' | 'done';
 
 export interface ContractChoice {
   strain: Strain;
@@ -58,6 +58,7 @@ export interface Contract {
   level: number;
   strain: Strain;
   declarer: Seat;
+  penalty?: 'none' | 'doubled' | 'redoubled';
 }
 
 export interface MiniBridgeState {
@@ -70,6 +71,44 @@ export interface MiniBridgeState {
   declarer: Seat | null;
   dummy: Seat | null;
   contract: Contract | null;
+  hands: { seat: Seat; cards: Card[] }[];
+  tricks: Trick[];
+  toPlay: Seat | null;
+  legalCards: Card[];
+  tricksNorthSouth: number;
+  tricksEastWest: number;
+  scoreNorthSouth: number | null;
+  fullDeal: DealInfo | null;
+}
+
+export interface CallInfo {
+  seat: Seat;
+  /** "1H", "3N", "P", "X", "XX" */
+  call: string;
+  explanation: string;
+  /** For the player's own calls: what the system would have bid, when different. */
+  systemCall: string | null;
+  systemExplanation: string | null;
+}
+
+export interface GameRequest {
+  number: number | null;
+  calls: string[];
+  cards: Card[];
+}
+
+export interface GameState {
+  number: number;
+  board: number;
+  dealer: Seat;
+  vulnerability: Vulnerability;
+  phase: GamePhase;
+  southHcp: number;
+  auction: CallInfo[];
+  legalCalls: string[];
+  hint: { call: string; explanation: string } | null;
+  contract: Contract | null;
+  dummy: Seat | null;
   hands: { seat: Seat; cards: Card[] }[];
   tricks: Trick[];
   toPlay: Seat | null;

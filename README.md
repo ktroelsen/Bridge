@@ -3,8 +3,13 @@
 Lær bridge fra bunden og øv dig mod en bot. Appen kan installeres som PWA og kører på
 `bridge.kaspert.dk`. Den samlede plan står i [PLAN.md](PLAN.md).
 
-**Status:** Fase 0 (skelet og deploy), fase 1 (mini-bridge mod bot) og første del af fase 3
-(lektioner 1–5) er på plads. Man kan:
+**Status:** Fase 0 (skelet og deploy), fase 1 (mini-bridge mod bot), fase 2 (meldinger og
+fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
+
+- **Spille bridge med meldinger mod botterne.** Du melder som Syd med en bot som makker.
+  Hver melding kan trykkes på og forklares ("Åbning (12–21 HP, mindst 5 ♥)"), "Hvad siger
+  systemet?" giver systemets melding, og melder du noget andet end systemet, ser du, hvad
+  systemet ville have meldt og hvorfor. Man kan fortryde meldinger og kort.
 
 - **Tage lektioner:** Spillets gang, Trumf, Tæl point, Mini-bridge og Kontrakter og udgang. Hver
   lektion er korte tekster og øvelser. Øvelserne laves på ny hver gang ud fra tilfældige hænder
@@ -47,6 +52,14 @@ gemmes i browseren.
 billigst muligt, overtag ikke makkers stik, trumf når du ikke kan bekende, udspil fra toppen
 af en sekvens eller 4. højeste. Som spilfører trækker den trumf og tager sine sikre stik.
 Den beslutter kun ud fra det, den må se (`PlayView`): egen hånd, blinden og spillede kort.
+
+**Meldinger.** `Bridge.Engine/Bidding/BeginnerSystem.cs` er et naturligt begyndersystem
+(5-farvers højfarve, 1UT 15–17, 2♣ stærk, Stayman, overføringer, indmeldinger og
+oplysningsdobling) skrevet som en liste af regler. Hver regel siger, hvornår den gælder, hvilken
+melding den giver, og hvad meldingen viser (`Shows`: HP-interval, længder, jævn fordeling).
+Den samme liste bruges til at botten melder, til at forklare alle meldinger, til hints og
+til at bygge et billede af makkers hånd. Når ingen regel passer, placerer botten kontrakten
+ud fra det, makker har vist.
 
 **Kortgivninger** er bestemt af et spilnummer. `Rng` er SplitMix64, som giver de samme tal på
 alle platforme og .NET-versioner. Kortene blandes med Fisher-Yates, og giver og zone følger
@@ -111,6 +124,16 @@ Engangsopsætning:
   - `cards` er dine kort i rækkefølge, også dem du spiller fra Nord.
   - Svaret indeholder fase, HP for alle, kontrakt, de hænder du må se, stikkene, dine lovlige
     kort og til sidst resultat og alle fire hænder.
+- `POST /api/game` spiller bridge med meldinger:
+
+  ```json
+  { "number": 482913, "calls": ["1H", "P", "2H"], "cards": [] }
+  ```
+
+  - `calls` er dine meldinger (Syd) i rækkefølge: `1C`…`7N`, `P`, `X`, `XX`.
+  - Svaret indeholder meldingerne med forklaring, dine lovlige meldinger, systemets forslag
+    (`hint`), feedback på dine meldinger (`systemCall`), kontrakten og resten som ved
+    mini-bridge.
 - `POST /api/players` med `{ "name": "Kasper" }` opretter eller finder en spiller (navnet er
   nøglen, uden forskel på store og små bogstaver).
 - `GET /api/players/{navn}/progress` giver den bedste score pr. lektion.

@@ -14,7 +14,7 @@ public record PlayedCardDto(Seat Seat, CardDto Card);
 
 public record TrickDto(Seat Leader, IReadOnlyList<PlayedCardDto> Plays, Seat? Winner);
 
-public record ContractDto(int Level, Strain Strain, Seat Declarer);
+public record ContractDto(int Level, Strain Strain, Seat Declarer, Penalty Penalty = Penalty.None);
 
 public record MiniBridgeDto(
     int Number,
