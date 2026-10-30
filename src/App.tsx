@@ -1,56 +1,90 @@
-import { useState } from 'react';
 import { DealViewer } from './components/DealViewer';
+import { LessonList } from './components/LessonList';
+import { LessonView } from './components/LessonView';
 import { MiniBridgeView } from './components/MiniBridgeView';
+import { lessonById, LESSONS } from './lessons/content';
+import { usePlayer } from './player';
+import { useRoute } from './router';
+import type { Practice } from './types';
 
-type View = 'home' | 'minibridge' | 'points';
-
-const COMING = [
-  { title: 'Lær bridge', text: 'Lektioner fra bunden: stik, trumf, point, meldinger og spilføring.' },
-  { title: 'Fuldt spil mod bot', text: 'Meld og spil med en bot som makker, og få hints undervejs.' },
-];
+const PRACTICES: Practice[] = ['any', 'declare', 'defend', 'trumpFit', 'noTrump'];
 
 export default function App() {
-  const [view, setView] = useState<View>('home');
-  const home = () => setView('home');
+  const [path, navigate] = useRoute();
+  const player = usePlayer();
+  const home = () => navigate('/');
+
+  const [route, query = ''] = path.split('?');
+  const parts = route.split('/').filter(Boolean);
+  const practiceParam = new URLSearchParams(query).get('ov') as Practice | null;
+  const practice: Practice = practiceParam && PRACTICES.includes(practiceParam) ? practiceParam : 'any';
+  const lesson = parts[0] === 'lektioner' && parts[1] ? lessonById(parts[1]) : undefined;
+
+  let page;
+  if (lesson) page = <LessonView key={lesson.id} lesson={lesson} player={player} navigate={navigate} />;
+  else if (parts[0] === 'lektioner') page = <LessonList player={player} navigate={navigate} />;
+  else if (parts[0] === 'minibridge') page = <MiniBridgeView key={practice} onBack={home} practice={practice} />;
+  else if (parts[0] === 'point') page = <DealViewer onBack={home} />;
+  else page = <Home player={player} navigate={navigate} />;
 
   return (
     <main className="page">
       <header className="title">
         <h1>Bridge-træner</h1>
-        {view === 'home' && <p>Lær bridge fra bunden og øv dig mod en bot.</p>}
+        {parts.length === 0 && <p>Lær bridge fra bunden og øv dig mod en bot.</p>}
       </header>
-
-      {view === 'home' && (
-        <>
-          <section className="panel menu">
-            <button type="button" className="menu-item" onClick={() => setView('minibridge')}>
-              <strong>Mini-bridge mod bot</strong>
-              <span>
-                Bridge uden meldinger. Parret med flest point spiller, og du lærer stik, trumf og spilføring. Det
-                bedste sted at starte.
-              </span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => setView('points')}>
-              <strong>Tæl point</strong>
-              <span>Se alle fire hænder og øv dig i at tælle honnørpoint.</span>
-            </button>
-          </section>
-          <section className="panel">
-            <h2>På vej</h2>
-            <ul className="coming">
-              {COMING.map((c) => (
-                <li key={c.title}>
-                  <strong>{c.title}</strong>
-                  <span>{c.text}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </>
-      )}
-
-      {view === 'minibridge' && <MiniBridgeView onBack={home} />}
-      {view === 'points' && <DealViewer onBack={home} />}
+      {page}
     </main>
+  );
+}
+
+function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navigate: (path: string) => void }) {
+  const done = LESSONS.filter((l) => player.progress[l.id] !== undefined).length;
+  const next = LESSONS.find((l) => player.progress[l.id] === undefined);
+  return (
+    <>
+      <section className="panel menu">
+        {player.name && (
+          <p className="greeting">
+            Hej {player.name}!{' '}
+            <button type="button" className="link" onClick={player.forgetName}>
+              Skift spiller
+            </button>
+          </p>
+        )}
+        <button type="button" className="menu-item" onClick={() => navigate(next ? `/lektioner/${next.id}` : '/lektioner')}>
+          <strong>Lær bridge</strong>
+          <span>
+            {done === 0
+              ? 'Start her: korte lektioner med øvelser, fra kortene og stikket til kontrakter.'
+              : `Du har taget ${done} af ${LESSONS.length} lektioner.${next ? ` Næste: ${next.title}.` : ' Godt gået!'}`}
+          </span>
+        </button>
+        <button type="button" className="link left" onClick={() => navigate('/lektioner')}>
+          Se alle lektioner
+        </button>
+        <button type="button" className="menu-item" onClick={() => navigate('/minibridge')}>
+          <strong>Mini-bridge mod bot</strong>
+          <span>Bridge uden meldinger. Parret med flest point spiller, og du øver stik, trumf og spilføring.</span>
+        </button>
+        <button type="button" className="menu-item" onClick={() => navigate('/point')}>
+          <strong>Tæl point</strong>
+          <span>Se alle fire hænder og øv dig i at tælle honnørpoint.</span>
+        </button>
+      </section>
+      <section className="panel">
+        <h2>På vej</h2>
+        <ul className="coming">
+          <li>
+            <strong>Meldinger</strong>
+            <span>Lektioner om åbning og svar, og en meldebot der forklarer sine meldinger.</span>
+          </li>
+          <li>
+            <strong>Fuldt spil mod bot</strong>
+            <span>Meld og spil med en bot som makker, og få hints undervejs.</span>
+          </li>
+        </ul>
+      </section>
+    </>
   );
 }

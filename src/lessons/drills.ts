@@ -1,0 +1,235 @@
+import { cardLabel, cardsInSuit, gameLevel, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, SUIT_NAME, SUIT_SYMBOL } from '../cards';
+import { suggestContract, fits } from '../coach';
+import { cardHcp, hcp, isBalanced, leftOf, legalCards, nextSeat, pick, randomDeal, SEATS, shape, suitLength, winningPlay, beats } from '../deck';
+import type { Card, PlayedCard, Seat, Strain, Suit } from '../types';
+import type { Question } from './types';
+
+// Question generators for the drills. Each call makes a fresh question from a random deal.
+
+const SUITS: Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
+const seatOptions = SEATS.map((s) => SEAT_NAME[s]);
+const lower = (suit: Suit) => SUIT_NAME[suit].toLowerCase();
+
+/** A trick where every player plays a random legal card from a random deal. */
+function randomTrick(cards: number) {
+  const deal = randomDeal();
+  const leader = pick(SEATS);
+  const plays: PlayedCard[] = [];
+  let seat = leader;
+  for (let i = 0; i < cards; i++) {
+    const legal = legalCards(deal[seat], plays[0]?.card.suit ?? null);
+    plays.push({ seat, card: pick(legal) });
+    seat = nextSeat(seat);
+  }
+  return { deal, plays, next: seat };
+}
+
+const ruffed = (plays: PlayedCard[], trump: Suit | null) =>
+  trump !== null && plays.some((p) => p.card.suit === trump && p.card.suit !== plays[0].card.suit);
+
+function winnerExplanation(plays: PlayedCard[], trump: Suit | null) {
+  const win = winningPlay(plays, trump);
+  const led = plays[0].card.suit;
+  if (trump && win.card.suit === trump && led !== trump) {
+    const trumps = plays.filter((p) => p.card.suit === trump).length;
+    return `${SEAT_NAME[win.seat]} vinder med ${cardLabel(win.card)}: ${lower(trump)} er trumf, og trumf slår alle andre farver${trumps > 1 ? '. Når flere trumfer, vinder den højeste trumf' : ''}.`;
+  }
+  const offSuit = plays.some((p) => p.card.suit !== led);
+  return `${SEAT_NAME[win.seat]} vinder med ${cardLabel(win.card)}, det højeste kort i ${lower(led)}, som blev spillet ud.${offSuit ? ' Kort i andre farver kan ikke vinde stikket' + (trump ? ', medmindre de er trumf.' : '.') : ''}`;
+}
+
+/** "Who wins the trick?" With trumps, about half of the tricks have someone ruffing. */
+export function trickWinner(withTrump: boolean): Question {
+  const trump = withTrump ? pick(SUITS) : null;
+  const wantRuff = withTrump && Math.random() < 0.55;
+  let trick = randomTrick(4);
+  for (let i = 0; i < 200 && ruffed(trick.plays, trump) !== wantRuff; i++) trick = randomTrick(4);
+  const win = winningPlay(trick.plays, trump);
+  return {
+    prompt: trump ? `Trumf er ${SUIT_SYMBOL[trump]}. Hvem vinder stikket?` : 'Der spilles uden trumf. Hvem vinder stikket?',
+    visual: { type: 'trick', plays: trick.plays, trump, noTrumpLabel: !trump },
+    answer: { type: 'options', options: seatOptions, correct: [SEATS.indexOf(win.seat)] },
+    explain: winnerExplanation(trick.plays, trump),
+  };
+}
+
+/** A trick so far where it is South's turn. */
+function southToPlay(accept: (hand: Card[], plays: PlayedCard[]) => boolean) {
+  for (let i = 0; ; i++) {
+    const before = 1 + Math.floor(Math.random() * 3);
+    const deal = randomDeal();
+    // Lead from the seat that makes South play after `before` cards.
+    let leader: Seat = 'south';
+    for (let k = 0; k < before; k++) leader = SEATS[(SEATS.indexOf(leader) + 3) % 4];
+    const plays: PlayedCard[] = [];
+    let seat = leader;
+    for (let k = 0; k < before; k++) {
+      plays.push({ seat, card: pick(legalCards(deal[seat], plays[0]?.card.suit ?? null)) });
+      seat = nextSeat(seat);
+    }
+    if (accept(deal.south, plays) || i > 5000) return { hand: deal.south, plays };
+  }
+}
+
+/** "Which card may you play?" Half the time South can follow suit, half the time not. */
+export function followSuit(): Question {
+  const wantVoid = Math.random() < 0.4;
+  const { hand, plays } = southToPlay((h, p) => (suitLength(h, p[0].card.suit) === 0) === wantVoid);
+  const led = plays[0].card.suit;
+  const legal = legalCards(hand, led);
+  const canFollow = suitLength(hand, led) > 0;
+  return {
+    prompt: `${SEAT_NAME[plays[0].seat]} har spillet ${cardLabel(plays[0].card)} ud. Vælg et kort, du må spille.`,
+    visual: { type: 'trick', plays, trump: null },
+    answer: { type: 'card', hand, correct: legal },
+    explain: canFollow
+      ? `Du har ${lower(led)}, så du skal bekende kulør: alle dine ${lower(led)} er rigtige, og ingen andre kort.`
+      : `Du har ingen ${lower(led)}, så du må spille et hvilket som helst kort. Det kan bare ikke vinde stikket uden trumf.`,
+  };
+}
+
+/** "Pick a card that wins the trick" with trumps: sometimes by following high, sometimes by ruffing. */
+export function winTrick(): Question {
+  const trump = pick(SUITS);
+  const wantRuff = Math.random() < 0.6;
+  const winners = (hand: Card[], plays: PlayedCard[]) => {
+    const current = winningPlay(plays, trump).card;
+    return legalCards(hand, plays[0].card.suit).filter((c) => beats(c, current, trump));
+  };
+  const { hand, plays } = southToPlay((h, p) => {
+    const led = p[0].card.suit;
+    const w = winners(h, p);
+    return led !== trump && w.length > 0 && (suitLength(h, led) === 0) === wantRuff;
+  });
+  const led = plays[0].card.suit;
+  const correct = winners(hand, plays);
+  const current = winningPlay(plays, trump);
+  const ruff = suitLength(hand, led) === 0;
+  return {
+    prompt: `Trumf er ${SUIT_SYMBOL[trump]}. Vælg et kort, der vinder stikket lige nu.`,
+    visual: { type: 'trick', plays, trump },
+    answer: { type: 'card', hand, correct },
+    explain: ruff
+      ? `Du har ingen ${lower(led)}, så du må trumfe. ${correct.length > 1 ? 'Enhver trumf, der er højere end de andres trumf, vinder – og det er klogt at bruge den mindste.' : `${cardLabel(correct[0])} vinder.`}`
+      : `Du har ${lower(led)} og skal bekende. Du skal slå ${cardLabel(current.card)}: ${correct.map(cardLabel).join(', ')} vinder.`,
+  };
+}
+
+/** Count the high card points in a hand. */
+export function countHcp(): Question {
+  const hand = randomDeal().south;
+  const honours = SUITS.flatMap((s) => cardsInSuit(hand, s)).filter((c) => cardHcp(c) > 0);
+  return {
+    prompt: 'Hvor mange honnørpoint (HP) har hånden?',
+    visual: { type: 'hand', cards: hand },
+    answer: { type: 'number', min: 0, max: 37, correct: hcp(hand) },
+    explain: honours.length
+      ? `${honours.map((c) => `${cardLabel(c)} = ${cardHcp(c)}`).join(', ')}. I alt ${hcp(hand)} HP.`
+      : 'Ingen billedkort og ingen esser: 0 HP.',
+  };
+}
+
+/** Balanced or not, half of each. */
+export function balanced(): Question {
+  const want = Math.random() < 0.5;
+  let hand = randomDeal().south;
+  while (isBalanced(hand) !== want) hand = randomDeal().south;
+  const s = shape(hand).join('-');
+  return {
+    prompt: 'Er hånden jævn eller ujævn?',
+    visual: { type: 'hand', cards: hand },
+    answer: { type: 'options', options: ['Jævn', 'Ujævn'], correct: [want ? 0 : 1] },
+    explain: want
+      ? `Fordelingen er ${s}: ingen renonce, ingen single og højst én doubleton. Den er jævn.`
+      : `Fordelingen er ${s}. ${shape(hand).some((l) => l <= 1) ? 'Der er en farve med 0 eller 1 kort' : 'Der er to doubletons'}, så den er ujævn.`,
+  };
+}
+
+/** Mini-bridge: who is the declarer? */
+export function declarer(): Question {
+  for (;;) {
+    const deal = randomDeal();
+    const points = Object.fromEntries(SEATS.map((s) => [s, hcp(deal[s])])) as Record<Seat, number>;
+    const ns = points.north + points.south;
+    if (ns === 20) continue;
+    const dealer = pick(SEATS);
+    const pair: Seat[] = ns > 20 ? ['north', 'south'] : ['east', 'west'];
+    const order = (s: Seat) => (SEATS.indexOf(s) - SEATS.indexOf(dealer) + 4) % 4;
+    const [a, b] = pair;
+    const tie = points[a] === points[b];
+    const winner = points[a] > points[b] || (tie && order(a) < order(b)) ? a : b;
+    const pairName = ns > 20 ? 'Nord-Syd' : 'Øst-Vest';
+    return {
+      prompt: `${SEAT_NAME[dealer]} er giver. Hvem bliver spilfører?`,
+      visual: { type: 'hcpTable', hcp: points, dealer },
+      answer: { type: 'options', options: seatOptions, correct: [SEATS.indexOf(winner)] },
+      explain: `${pairName} har ${ns > 20 ? ns : 40 - ns} point og dermed flest. ${
+        tie
+          ? `Begge har ${points[a]}, så den, der siger sine point først (regnet fra giveren), bliver spilfører: ${SEAT_NAME[winner]}.`
+          : `${SEAT_NAME[winner]} har flest af de to og bliver spilfører.`
+      } ${SEAT_NAME[winner === a ? b : a]} bliver blind.`,
+    };
+  }
+}
+
+const STRAINS: Strain[] = ['clubs', 'diamonds', 'hearts', 'spades', 'noTrump'];
+
+/** How many tricks does a contract need? */
+export function tricksNeeded(): Question {
+  const level = 1 + Math.floor(Math.random() * 7);
+  const strain = pick(STRAINS);
+  return {
+    prompt: `Hvor mange stik skal spilføreren tage i ${level}${STRAIN_LABEL[strain]}?`,
+    visual: { type: 'contract', level, strain },
+    answer: { type: 'number', min: 7, max: 13, correct: level + 6 },
+    explain: `Niveau + 6: ${level} + 6 = ${level + 6} stik. Trumffarven ændrer ikke på antallet.`,
+  };
+}
+
+/** Part score or game? */
+export function isGame(): Question {
+  const strain = pick(STRAINS);
+  const level = 1 + Math.floor(Math.random() * 5);
+  const game = level >= gameLevel(strain);
+  return {
+    prompt: `Er ${level}${STRAIN_LABEL[strain]} en delkontrakt eller en udgang?`,
+    visual: { type: 'contract', level, strain },
+    answer: { type: 'options', options: ['Delkontrakt', 'Udgang'], correct: [game ? 1 : 0] },
+    explain: `Udgang i ${STRAIN_NAME[strain].toLowerCase()} er ${gameLevel(strain)}${STRAIN_LABEL[strain]} eller højere (${gameLevel(strain) + 6} stik). ${level}${STRAIN_LABEL[strain]} er derfor ${game ? 'en udgang' : 'en delkontrakt'}.`,
+  };
+}
+
+/** Which strain should North-South play? Only deals with a clear answer. */
+export function trumpChoice(): Question {
+  for (;;) {
+    const deal = randomDeal();
+    const f = fits(deal.south, deal.north);
+    const total = (suit: Suit) => f.filter((x) => x.suit === suit).reduce((n, x) => n + x.mine + x.partner, 0);
+    const eight = f.filter((x) => x.mine + x.partner >= 8);
+    // Skip deals with two 8-card fits, or a minor fit next to nothing (the answer would be debatable).
+    if (eight.length > 1) continue;
+    if (eight.length === 1 && (eight[0].suit === 'clubs' || eight[0].suit === 'diamonds')) continue;
+    const tip = suggestContract(25, f);
+    const correct = STRAINS.indexOf(tip.strain);
+    return {
+      prompt: 'Nord og Syd har tilsammen 25 point. Hvad skal de spille?',
+      visual: { type: 'twoHands', north: deal.north, south: deal.south },
+      answer: { type: 'options', options: STRAINS.map((s) => STRAIN_LABEL[s]), correct: [correct] },
+      explain:
+        tip.strain === 'noTrump'
+          ? `Ingen farve har 8 kort tilsammen (${SUITS.map((s) => `${SUIT_SYMBOL[s]} ${total(s)}`).join(', ')}), så uden trumf er bedst.`
+          : `I har ${total(tip.strain as Suit)} ${lower(tip.strain as Suit)} sammen: en fit på 8 kort eller flere i en højfarve er den bedste trumffarve.`,
+    };
+  }
+}
+
+/** Opening leader: left of the declarer. */
+export function openingLeader(): Question {
+  const decl = pick(SEATS);
+  const leader = leftOf(decl);
+  return {
+    prompt: `${SEAT_NAME[decl]} er spilfører. Hvem spiller ud til første stik?`,
+    answer: { type: 'options', options: seatOptions, correct: [SEATS.indexOf(leader)] },
+    explain: `Spilleren til venstre for spilføreren spiller ud. Til venstre for ${SEAT_NAME[decl]} sidder ${SEAT_NAME[leader]} (spillet går med uret: Nord, Øst, Syd, Vest).`,
+  };
+}

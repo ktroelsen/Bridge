@@ -1,19 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Bridge.Api;
 using Bridge.Engine;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Bridge.Tests;
 
-public class ApiTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class ApiTests(TestFactory factory) : IClassFixture<TestFactory>
 {
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-    };
+    private static readonly JsonSerializerOptions Json = TestFactory.Json;
 
     [Fact]
     public async Task Health_is_ok()
@@ -111,5 +106,20 @@ public class ApiTests(WebApplicationFactory<Program> factory) : IClassFixture<We
         var response = await client.PostAsJsonAsync("/api/minibridge",
             new MiniBridgeRequest(number, null, [new CardDto(west.Suit, west.Rank)]), Json);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(Practice.Declare)]
+    [InlineData(Practice.Defend)]
+    [InlineData(Practice.TrumpFit)]
+    [InlineData(Practice.NoTrump)]
+    public async Task Practice_deals_match_their_kind(Practice practice)
+    {
+        var client = factory.CreateClient();
+        for (var i = 0; i < 5; i++)
+        {
+            var game = await PostMiniBridge(client, new MiniBridgeRequest(null, null, null, practice));
+            Assert.True(MiniBridge.Matches(Deal.FromNumber(game.Number), practice));
+        }
     }
 }
