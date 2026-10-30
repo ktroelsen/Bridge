@@ -24,3 +24,54 @@ export interface DealInfo {
   vulnerability: Vulnerability;
   hands: HandInfo[];
 }
+
+export type Strain = Suit | 'noTrump';
+export type GamePhase = 'redeal' | 'chooseContract' | 'play' | 'done';
+
+export interface ContractChoice {
+  strain: Strain;
+  game: boolean;
+}
+
+export interface MiniBridgeRequest {
+  number: number | null;
+  contract: ContractChoice | null;
+  cards: Card[];
+}
+
+export interface PlayedCard {
+  seat: Seat;
+  card: Card;
+}
+
+export interface Trick {
+  leader: Seat;
+  plays: PlayedCard[];
+  winner: Seat | null;
+}
+
+export interface Contract {
+  level: number;
+  strain: Strain;
+  declarer: Seat;
+}
+
+export interface MiniBridgeState {
+  number: number;
+  board: number;
+  dealer: Seat;
+  vulnerability: Vulnerability;
+  phase: GamePhase;
+  hcp: { seat: Seat; hcp: number }[];
+  declarer: Seat | null;
+  dummy: Seat | null;
+  contract: Contract | null;
+  hands: { seat: Seat; cards: Card[] }[];
+  tricks: Trick[];
+  toPlay: Seat | null;
+  legalCards: Card[];
+  tricksNorthSouth: number;
+  tricksEastWest: number;
+  scoreNorthSouth: number | null;
+  fullDeal: DealInfo | null;
+}

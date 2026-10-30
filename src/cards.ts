@@ -1,4 +1,4 @@
-import type { Card, Rank, Seat, Suit, Vulnerability } from './types';
+import type { Card, Rank, Seat, Strain, Suit, Vulnerability } from './types';
 
 /** Display order: spades, hearts, diamonds, clubs (alternating colours). */
 export const SUITS: Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
@@ -31,3 +31,19 @@ export function cardsInSuit(cards: Card[], suit: Suit): Card[] {
     .filter((c) => c.suit === suit)
     .sort((a, b) => RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank));
 }
+
+export const STRAINS: Strain[] = ['clubs', 'diamonds', 'hearts', 'spades', 'noTrump'];
+export const STRAIN_LABEL: Record<Strain, string> = { ...SUIT_SYMBOL, noTrump: 'UT' };
+export const STRAIN_NAME: Record<Strain, string> = { ...SUIT_NAME, noTrump: 'Uden trumf' };
+
+/** The lowest game level: 3UT, 4♥/4♠, 5♣/5♦. */
+export const gameLevel = (strain: Strain) => (strain === 'noTrump' ? 3 : strain === 'hearts' || strain === 'spades' ? 4 : 5);
+
+export const sameCard = (a: Card, b: Card) => a.suit === b.suit && a.rank === b.rank;
+
+export const cardLabel = (card: Card) => `${SUIT_SYMBOL[card.suit]}${RANK_LABEL[card.rank]}`;
+
+export const isNorthSouth = (seat: Seat) => seat === 'north' || seat === 'south';
+
+const PARTNER: Record<Seat, Seat> = { north: 'south', south: 'north', east: 'west', west: 'east' };
+export const partnerOf = (seat: Seat) => PARTNER[seat];

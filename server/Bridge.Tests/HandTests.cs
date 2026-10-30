@@ -4,14 +4,7 @@ namespace Bridge.Tests;
 
 public class HandTests
 {
-    /// <summary>A hand from PBN-style suit strings, spades first: "AKQ2.J52.T93.84".</summary>
-    private static Hand Parse(string pbn)
-    {
-        var suits = pbn.Split('.');
-        Suit[] order = [Suit.Spades, Suit.Hearts, Suit.Diamonds, Suit.Clubs];
-        return new Hand(suits.SelectMany((s, i) =>
-            s.Select(r => new Card(order[i], (Rank)("23456789TJQKA".IndexOf(r) + 2)))));
-    }
+    private static Hand Parse(string pbn) => Pbn.Hand(pbn);
 
     [Theory]
     [InlineData("AKQ2.J52.T93.842", 10)]

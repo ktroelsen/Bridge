@@ -37,6 +37,14 @@ public sealed class Deal
 
     public Hand this[Seat seat] => _hands[(int)seat];
 
+    /// <summary>A hand-made deal (lessons, PBN), North first. The board number sets dealer and vulnerability.</summary>
+    public static Deal FromHands(IReadOnlyList<Hand> hands, int board = 1)
+    {
+        if (hands.Count != 4 || hands.SelectMany(h => h.Cards).Distinct().Count() != 52)
+            throw new ArgumentException("Et spil skal have fire hænder med alle 52 kort.", nameof(hands));
+        return new Deal(board, [.. hands]);
+    }
+
     public static Deal FromNumber(int number)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(number, MinNumber);
