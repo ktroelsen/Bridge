@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# .NET backend (server/)
+[Bb]in/
+[Oo]bj/
+TestResults/
+# built frontend (copied in at deploy time) and publish output
+server/Bridge.Api/wwwroot/
+publish/
+server/Bridge.Api/App_Data/
