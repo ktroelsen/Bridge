@@ -33,10 +33,14 @@ export interface ContractChoice {
   game: boolean;
 }
 
+export type Practice = 'any' | 'declare' | 'defend' | 'trumpFit' | 'noTrump';
+
 export interface MiniBridgeRequest {
   number: number | null;
   contract: ContractChoice | null;
   cards: Card[];
+  /** For a new game: the kind of deal to practise. */
+  practice?: Practice;
 }
 
 export interface PlayedCard {

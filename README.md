@@ -3,7 +3,17 @@
 Lær bridge fra bunden og øv dig mod en bot. Appen kan installeres som PWA og kører på
 `bridge.kaspert.dk`. Den samlede plan står i [PLAN.md](PLAN.md).
 
-**Status:** Fase 0 (skelet og deploy) og fase 1 (mini-bridge mod bot) er på plads. Man kan:
+**Status:** Fase 0 (skelet og deploy), fase 1 (mini-bridge mod bot) og første del af fase 3
+(lektioner 1–5) er på plads. Man kan:
+
+- **Tage lektioner:** Spillets gang, Trumf, Tæl point, Mini-bridge og Kontrakter og udgang. Hver
+  lektion er korte tekster og øvelser. Øvelserne laves på ny hver gang ud fra tilfældige hænder
+  og stik: hvem vinder stikket, bekend kulør, vind stikket med trumf, tæl point, jævn/ujævn,
+  hvem bliver spilfører, hvem spiller ud, antal stik, delkontrakt/udgang og valg af
+  trumffarve. Efter nogle lektioner kan man øve i mini-bridge med en passende kortgivning
+  (fx "du er spilfører" eller "I har en trumffit").
+- **Gemme sit fremskridt** under sit navn (intet login). Fremskridtet gemmes også i browseren,
+  så appen virker uden navn.
 
 - **Spille mini-bridge mod botten.** Det er bridge uden meldinger. Parret med flest point
   spiller, og spilføreren vælger trumf og delkontrakt eller udgang. Du sidder Syd og spiller
@@ -11,7 +21,12 @@ Lær bridge fra bunden og øv dig mod en bot. Appen kan installeres som PWA og k
   udspil), og træneren kan foreslå en kontrakt.
 - **Tælle point:** se kortgivninger med alle fire hænder åbne.
 
-Lektioner og fuldt spil med meldinger kommer i de næste faser.
+Lektioner om meldinger og fuldt spil med meldinger kommer i de næste faser.
+
+**Lektionerne** ligger i frontenden (`src/lessons/content.ts`) som tekst, faste spørgsmål og
+øvelser (`src/lessons/drills.ts`, der laver nye spørgsmål ud fra tilfældige kort). Serveren
+kender kun lektionernes id'er og gemmer den bedste score pr. spiller i SQLite
+(`App_Data/bridge.db`, som deploy springer over).
 
 ## Arkitektur
 
@@ -90,8 +105,14 @@ Engangsopsætning:
   { "number": 482913, "contract": { "strain": "spades", "game": true }, "cards": [{ "suit": "hearts", "rank": "king" }] }
   ```
 
-  - Udelad `number` for et nyt tilfældigt spil.
+  - Udelad `number` for et nyt tilfældigt spil. `practice` (`declare`, `defend`, `trumpFit`,
+    `noTrump`) vælger så et spil af den slags.
   - `contract` er kun med, når Nord-Syd er spilfører (ellers vælger botten).
   - `cards` er dine kort i rækkefølge, også dem du spiller fra Nord.
   - Svaret indeholder fase, HP for alle, kontrakt, de hænder du må se, stikkene, dine lovlige
     kort og til sidst resultat og alle fire hænder.
+- `POST /api/players` med `{ "name": "Kasper" }` opretter eller finder en spiller (navnet er
+  nøglen, uden forskel på store og små bogstaver).
+- `GET /api/players/{navn}/progress` giver den bedste score pr. lektion.
+- `PUT /api/players/{navn}/progress/{lektion}` med `{ "score": 80 }` gemmer et resultat. Kun
+  den bedste score beholdes.

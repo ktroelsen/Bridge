@@ -294,6 +294,98 @@ body {
 .score.plus { color: var(--felt); }
 .score.minus { color: var(--red); }
 
+/* Lessons */
+.greeting { margin: 0; display: flex; align-items: center; gap: 8px; }
+.link.left { align-self: flex-start; margin-top: -4px; }
+.practice-label { margin: 0 0 4px; font-weight: 600; color: var(--felt); }
+.name-input { width: 14rem !important; }
+
+.lesson-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lesson-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.menu-item.next { border: 2px solid var(--felt); }
+.menu-item.locked { opacity: 0.55; cursor: default; }
+.done-badge { font-size: 0.8rem; font-weight: 700; color: var(--felt); background: #e6f1e3; border-radius: 999px; padding: 1px 8px; }
+.next-badge { font-size: 0.8rem; font-weight: 700; background: var(--gold); border-radius: 999px; padding: 1px 8px; }
+
+.progress { height: 6px; background: var(--paper-edge); border-radius: 999px; overflow: hidden; margin: 4px 0 12px; }
+.progress div { height: 100%; background: var(--felt); transition: width 0.3s; }
+
+.lesson h2 { margin-bottom: 8px; }
+.lesson-text p { line-height: 1.55; margin: 0 0 10px; }
+.prompt { font-size: 1.05rem; font-weight: 600; margin: 4px 0 10px; line-height: 1.45; }
+.visual { margin: 8px 0 12px; }
+.center { text-align: center; }
+
+.lesson-trick { max-width: 280px; height: 170px; margin: 0 auto; }
+.lesson-trick .trick-card { width: 46px; height: 60px; font-size: 1.05rem; }
+.lesson-trick .trick-card.north { left: calc(50% - 23px); top: 22px; }
+.lesson-trick .trick-card.south { left: calc(50% - 23px); bottom: 22px; }
+.lesson-trick .trick-card.west { left: 30px; top: calc(50% - 30px); }
+.lesson-trick .trick-card.east { right: 30px; top: calc(50% - 30px); }
+.seat-letter { position: absolute; color: var(--paper); font-size: 0.75rem; font-weight: 700; opacity: 0.85; }
+.seat-letter.north { top: 4px; left: 0; right: 0; text-align: center; }
+.seat-letter.south { bottom: 4px; left: 0; right: 0; text-align: center; }
+.seat-letter.west { left: 8px; top: calc(50% - 8px); }
+.seat-letter.east { right: 8px; top: calc(50% - 8px); }
+.lesson-trick .seat-letter.west, .lesson-trick .seat-letter.east { writing-mode: horizontal-tb; }
+
+.hcp-table {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: '. north .' 'west . east' '. south .';
+  max-width: 320px;
+  margin: 0 auto;
+  gap: 6px;
+  background: var(--felt);
+  color: var(--paper);
+  border-radius: 14px;
+  padding: 10px;
+}
+.hcp-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px 2px; }
+.hcp-cell.north { grid-area: north; }
+.hcp-cell.west { grid-area: west; }
+.hcp-cell.east { grid-area: east; }
+.hcp-cell.south { grid-area: south; }
+
+.contract-pill {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: 800;
+  background: white;
+  border: 2px solid var(--paper-edge);
+  border-radius: 14px;
+  padding: 6px 22px;
+}
+.contract-pill.red { color: var(--red); }
+
+.answer-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.answer {
+  min-height: 46px;
+  min-width: 64px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 2px solid var(--paper-edge);
+  background: white;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.answer:hover:not(:disabled) { border-color: var(--felt); }
+.answer:disabled { cursor: default; }
+.numbers .answer { min-width: 46px; padding: 0; }
+.answer.correct, .card-chip.correct { border-color: var(--felt); background: #d9ecd4; }
+.answer.wrong, .card-chip.wrong { border-color: var(--red); background: #f8dcdc; }
+.card-answer { margin: 8px 0; }
+
+.feedback { margin: 10px 0; padding: 10px 12px; border-radius: 8px; line-height: 1.45; border-left: 4px solid; }
+.feedback.right { background: #e6f1e3; border-color: var(--felt); }
+.feedback.wrong { background: #fbe9e9; border-color: var(--red); }
+
+.lesson-done .big-score { font-size: 2.6rem; font-weight: 800; color: var(--felt); margin: 4px 0; }
+.lesson-done .tip { margin: 12px 0; }
+.lesson-done .tip p { margin: 0 0 8px; }
+
 @media (max-width: 480px) {
   .table {
     grid-template-columns: 1fr 1fr;

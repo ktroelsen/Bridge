@@ -15,18 +15,26 @@ import {
   VULNERABILITY_NAME,
 } from '../cards';
 import { loadMiniBridge, saveMiniBridge } from '../storage';
-import type { Card, Contract, ContractChoice, MiniBridgeRequest, MiniBridgeState, PlayedCard, Seat, Strain } from '../types';
+import type { Card, Contract, ContractChoice, MiniBridgeRequest, MiniBridgeState, PlayedCard, Practice, Seat, Strain } from '../types';
 import { DealTable } from './DealTable';
 import { HiddenHand, PlayHand } from './PlayHand';
 
 const BOT_CARD_MS = 550;
 const TRICK_PAUSE_MS = 1200;
-const NEW_GAME: MiniBridgeRequest = { number: null, contract: null, cards: [] };
+const newGameRequest = (practice: Practice): MiniBridgeRequest => ({ number: null, contract: null, cards: [], practice });
+
+const PRACTICE_LABEL: Record<Practice, string | null> = {
+  any: null,
+  declare: 'Øvelse: du er spilfører',
+  defend: 'Øvelse: du spiller modspil',
+  trumpFit: 'Øvelse: I har en trumffit',
+  noTrump: 'Øvelse: ingen fit, prøv uden trumf',
+};
 
 const contractText = (c: { level: number; strain: Strain }) => `${c.level}${STRAIN_LABEL[c.strain]}`;
 const trumpOf = (c: Contract | null) => (c && c.strain !== 'noTrump' ? c.strain : null);
 
-export function MiniBridgeView({ onBack }: { onBack: () => void }) {
+export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => void; practice?: Practice }) {
   const [request, setRequest] = useState<MiniBridgeRequest | null>(null);
   const [game, setGame] = useState<MiniBridgeState | null>(null);
   // How many of the played cards are on screen; the bot's cards appear one at a time.
@@ -56,17 +64,17 @@ export function MiniBridgeView({ onBack }: { onBack: () => void }) {
     }
   }, []);
 
-  // Resume the saved game (once, also under StrictMode).
+  // Resume the saved game (once, also under StrictMode). Practice from a lesson always starts a new deal.
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void send(loadMiniBridge() ?? NEW_GAME, false);
-  }, [send]);
+    void send(practice === 'any' ? (loadMiniBridge() ?? newGameRequest('any')) : newGameRequest(practice), false);
+  }, [send, practice]);
 
   const newGame = () => {
     setShown(0);
-    void send(NEW_GAME, false);
+    void send(newGameRequest(practice), false);
   };
   const replay = () => {
     if (!game) return;
@@ -194,6 +202,8 @@ export function MiniBridgeView({ onBack }: { onBack: () => void }) {
           Nyt spil
         </button>
       </div>
+
+      {PRACTICE_LABEL[practice] && <p className="practice-label">{PRACTICE_LABEL[practice]}</p>}
 
       {contract && (
         <div className="status-line">

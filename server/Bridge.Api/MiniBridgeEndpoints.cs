@@ -4,7 +4,7 @@ namespace Bridge.Api;
 
 public record ContractChoiceDto(Strain Strain, bool Game);
 
-public record MiniBridgeRequest(int? Number, ContractChoiceDto? Contract, List<CardDto>? Cards);
+public record MiniBridgeRequest(int? Number, ContractChoiceDto? Contract, List<CardDto>? Cards, Practice Practice = Practice.Any);
 
 public record SeatHcpDto(Seat Seat, int Hcp);
 
@@ -46,7 +46,7 @@ public static class MiniBridgeEndpoints
     {
         app.MapPost("/api/minibridge", (MiniBridgeRequest request) =>
         {
-            var number = request.Number ?? NewNumber();
+            var number = request.Number ?? NewNumber(request.Practice);
             if (number is < Deal.MinNumber or > Deal.MaxNumber)
                 return Results.BadRequest(new { error = "Ugyldigt spilnummer." });
             if (request.Cards is { Count: > 26 })
@@ -65,13 +65,13 @@ public static class MiniBridgeEndpoints
         });
     }
 
-    /// <summary>A random deal number that isn't a 20–20 redeal.</summary>
-    private static int NewNumber()
+    /// <summary>A random deal number for the practice kind (never a 20–20 redeal).</summary>
+    private static int NewNumber(Practice practice)
     {
         while (true)
         {
             var n = Random.Shared.Next(DealEndpoints.MinRandom, DealEndpoints.MaxRandom + 1);
-            if (MiniBridge.Declarer(Deal.FromNumber(n)) is not null) return n;
+            if (MiniBridge.Matches(Deal.FromNumber(n), practice)) return n;
         }
     }
 

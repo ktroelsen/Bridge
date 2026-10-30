@@ -6,8 +6,37 @@ namespace Bridge.Engine;
 /// pair is the declarer. The dummy goes down at once, and the declarer then chooses trumps (or no
 /// trump) and whether to play a part score or a game. At 20–20 the cards are dealt again.
 /// </summary>
+/// <summary>Kinds of mini-bridge deals for practice (lessons pick the situation they teach).</summary>
+public enum Practice
+{
+    Any,
+    /// <summary>North-South declare, so the player is declarer.</summary>
+    Declare,
+    /// <summary>East-West declare, so the player defends.</summary>
+    Defend,
+    /// <summary>North-South declare and have 8+ cards together in a suit.</summary>
+    TrumpFit,
+    /// <summary>North-South declare without any 8-card fit, so no trump is natural.</summary>
+    NoTrump,
+}
+
 public static class MiniBridge
 {
+    public static bool Matches(Deal deal, Practice practice)
+    {
+        if (Declarer(deal) is not { } declarer) return false;
+        var ns = declarer.IsNorthSouth();
+        var bestFit = Enum.GetValues<Suit>().Max(s => deal[Seat.North].Length(s) + deal[Seat.South].Length(s));
+        return practice switch
+        {
+            Practice.Declare => ns,
+            Practice.Defend => !ns,
+            Practice.TrumpFit => ns && bestFit >= 8,
+            Practice.NoTrump => ns && bestFit < 8,
+            _ => true,
+        };
+    }
+
     /// <summary>The declarer, or null when both pairs have 20 points (redeal).</summary>
     public static Seat? Declarer(Deal deal)
     {
