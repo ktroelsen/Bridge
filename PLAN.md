@@ -129,9 +129,22 @@ med transpositionstabel og gruppering af ækvivalente kort. Den gør tre ting:
   i stik 3 kostede et stik").
 - Laver **hints** under spillet.
 
-Vi vælger ren C# frem for Bo Haglunds DDS (C++). Simply kører 32-bit IIS, og en native DLL
-gør deploy skrøbelig. Hvis ydelsen bliver et problem, kan der sættes en tidsgrænse pr. træk,
-eller antallet af simulationer kan skrues ned.
+**Færdige pakker:** Der findes NuGet-pakken `ddsWrapper`, en .NET-wrapper om Bo Haglunds
+DDS (verdens mest brugte double dummy-solver, skrevet i C++). Den er hurtig og gennemtestet,
+men den kalder en native `dds.dll`. Simply kører 32-bit IIS, så det skal først bevises, at der
+findes en x86-udgave af DLL'en, og at den kan loades på Simply. Planen er derfor:
+
+1. Definér et interface `IDoubleDummySolver` i motoren.
+2. I fase 4 laves en lille test-deploy med `ddsWrapper` på Simply.
+3. Virker den, bruges den. Ellers skrives solveren i ren C# bag samme interface.
+
+Uanset valget kan der sættes en tidsgrænse pr. træk eller skrues ned for antallet af
+simulationer, hvis ydelsen bliver et problem.
+
+**Meldebot:** Der findes ingen NuGet-pakke til meldinger. EPBot (motoren bag programmet BBA)
+er en gratis .NET-DLL, men den er bygget til .NET Framework 4.8.1, har sine egne systemer og
+giver ikke danske, pædagogiske forklaringer. Derfor skriver vi vores egen regelmotor. EPBot kan
+eventuelt bruges i tests som sparringspartner.
 
 **Siddepladser:** Når jeres side vinder kontrakten, er du altid spilfører. Hvis Nord "burde"
 være spilfører, roteres bordet, så du spiller begge hænder (din og blindens). Når du sidder i
@@ -250,7 +263,7 @@ Det er en direkte kopi af Backgammon-opsætningen:
 
 Engangsopsætning:
 
-1. Opret et website eller subdomæne hos Simply (fx `bridge.<dit-domæne>`) og slå Web Deploy
+1. Opret et website eller subdomæne hos Simply (`bridge.kaspert.dk`) og slå Web Deploy
    til.
 2. Opret GitHub Environment `production` med `SIMPLY_WEBDEPLOY_URL`, `_SITE`, `_USERNAME`
    og `_PASSWORD`.
@@ -300,12 +313,10 @@ derfor komme før den stærke bot.
 | Lektionsindholdet er det største arbejde | Start med de første 7 moduler og et fast format. Indholdet ligger i filer, så det kan skrives uden at kode |
 | Snyd/lækage af skjulte kort til klienten | Serveren sender kun synlige kort. Det testes eksplicit |
 
-## 12. Åbne spørgsmål
+## 12. Beslutninger
 
-1. **Meldesystem:** Er et naturligt begyndersystem (5-farvers højfarve, 1UT 15–17) det
-   rigtige, eller lærer du et bestemt system i en klub?
-2. **Niveau:** Starter du helt fra bunden, eller kender du reglerne og vil primært øve
-   meldinger og spilføring? Det afgør, om fase 1 (mini-bridge) eller fase 2 skal prioriteres.
-3. **Subdomæne:** Hvilket domæne/subdomæne på Simply skal appen ligge på?
-4. **Flere brugere:** Skal andre (fx familie/klub) kunne bruge den med egen profil? Det er
-   allerede med i planen, men afgør om der skal være login.
+1. **Meldesystem:** naturligt begyndersystem (5-farvers højfarve, 1UT 15–17).
+2. **Niveau:** helt fra bunden. Fase 1 (mini-bridge) og modulerne 1–5 prioriteres, og
+   træneren står som standard på "fuld hjælp".
+3. **Domæne:** `bridge.kaspert.dk` hos Simply.
+4. **Brugere:** flere brugere, der genkendes på navnet (intet login), som i Backgammon.
