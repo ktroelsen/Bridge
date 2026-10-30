@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Bridge.Api/Bridge.Api.csproj" />
+  <Project Path="Bridge.Engine/Bridge.Engine.csproj" />
+  <Project Path="Bridge.Tests/Bridge.Tests.csproj" />
+</Solution>
