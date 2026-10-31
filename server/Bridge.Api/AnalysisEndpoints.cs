@@ -24,14 +24,14 @@ public static class AnalysisEndpoints
     public static void MapAnalysisEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapPost("/api/game/hint", (GameRequest request) =>
-            Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards)), g => g.Play, g => g.HumanControls, Hint));
+            Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards), request.Level), g => g.Play, g => g.HumanControls, Hint));
         app.MapPost("/api/game/review", (GameRequest request) =>
-            Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards)), g => g.Play, g => g.HumanControls, Review));
+            Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards), request.Level), g => g.Play, g => g.HumanControls, Review));
         app.MapPost("/api/minibridge/hint", (MiniBridgeRequest request) =>
-            Run(() => MiniBridgeGame.Replay(Number(request.Number), request.Contract?.Strain, request.Contract?.Game ?? false, Cards(request.Cards)),
+            Run(() => MiniBridgeGame.Replay(Number(request.Number), request.Contract?.Strain, request.Contract?.Game ?? false, Cards(request.Cards), request.Level),
                 g => g.Play, g => g.HumanControls, Hint));
         app.MapPost("/api/minibridge/review", (MiniBridgeRequest request) =>
-            Run(() => MiniBridgeGame.Replay(Number(request.Number), request.Contract?.Strain, request.Contract?.Game ?? false, Cards(request.Cards)),
+            Run(() => MiniBridgeGame.Replay(Number(request.Number), request.Contract?.Strain, request.Contract?.Game ?? false, Cards(request.Cards), request.Level),
                 g => g.Play, g => g.HumanControls, Review));
     }
 

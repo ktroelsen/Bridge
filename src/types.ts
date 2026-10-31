@@ -35,7 +35,10 @@ export interface ContractChoice {
 
 export type Practice = 'any' | 'declare' | 'defend' | 'trumpFit' | 'noTrump';
 
+export type BotLevel = 'easy' | 'medium' | 'hard';
+
 export interface MiniBridgeRequest {
+  level?: BotLevel;
   number: number | null;
   contract: ContractChoice | null;
   cards: Card[];
@@ -92,6 +95,7 @@ export interface CallInfo {
 }
 
 export interface GameRequest {
+  level?: BotLevel;
   number: number | null;
   calls: string[];
   cards: Card[];

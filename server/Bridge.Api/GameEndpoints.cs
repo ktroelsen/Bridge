@@ -2,7 +2,7 @@ using Bridge.Engine;
 
 namespace Bridge.Api;
 
-public record GameRequest(int? Number, List<string>? Calls, List<CardDto>? Cards);
+public record GameRequest(int? Number, List<string>? Calls, List<CardDto>? Cards, BotLevel Level = BotLevel.Easy);
 
 public record CallDto(Seat Seat, string Call, string Explanation, string? SystemCall, string? SystemExplanation);
 
@@ -50,7 +50,7 @@ public static class GameEndpoints
             {
                 var calls = (request.Calls ?? []).Select(Call.Parse).ToList();
                 var cards = (request.Cards ?? []).Select(c => new Card(c.Suit, c.Rank)).ToList();
-                return Results.Ok(ToDto(BridgeGame.Replay(number, calls, cards)));
+                return Results.Ok(ToDto(BridgeGame.Replay(number, calls, cards, request.Level)));
             }
             catch (FormatException ex)
             {

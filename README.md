@@ -73,6 +73,17 @@ Den samme liste bruges til at botten melder, til at forklare alle meldinger, til
 til at bygge et billede af makkers hånd. Når ingen regel passer, placerer botten kontrakten
 ud fra det, makker har vist.
 
+**Botternes kortspil** har tre niveauer, som man vælger over bordet. **Let** er
+tommelfingerreglerne ovenfor. **Mellem** (fra 4. stik) og **Svær** (hele spillet) trækker
+fordelinger af de skjulte kort, der passer med det, botten ved (egen hånd, blinden, spillede
+kort, renoncer og det, meldingerne eller de oplyste point viste), løser hver med double
+dummy-løseren og spiller det kort, der oftest vinder eller sætter kontrakten
+(`Bridge.Engine/Analysis/PlayBot.cs`). Fordi spillet genspilles ved hver request, er botten
+deterministisk: prøverne er seeded af stillingen, og løseren begrænses af antal stillinger,
+ikke af tid. Valgene caches. I en simulering over 40 mini-bridge-spil vandt Svær som spilfører
+98 % af kontrakterne mod 80 % for Let, og Svær i modspil fik Let-spilføreren ned på 68 %.
+Svær bruger i gennemsnit 0,2 s pr. beslutning (højst ~1,5 s).
+
 **Kortgivninger** er bestemt af et spilnummer. `Rng` er SplitMix64, som giver de samme tal på
 alle platforme og .NET-versioner. Kortene blandes med Fisher-Yates, og giver og zone følger
 den almindelige duplikat-cyklus på 16 spil. En golden test sikrer, at et spilnummer altid

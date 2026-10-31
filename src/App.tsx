@@ -82,8 +82,8 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
         <h2>På vej</h2>
         <ul className="coming">
           <li>
-            <strong>Stærkere bot</strong>
-            <span>Modstandere og makker, der spiller bedre og bruger det, meldingerne har vist.</span>
+            <strong>Optimal kontrakt</strong>
+            <span>Se efter spillet, hvad der kunne vindes i hver farve.</span>
           </li>
           <li>
             <strong>Statistik</strong>

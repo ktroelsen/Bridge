@@ -386,6 +386,22 @@ body {
 .lesson-done .tip { margin: 12px 0; }
 .lesson-done .tip p { margin: 0 0 8px; }
 
+/* Bot level */
+.level-picker { display: flex; align-items: center; gap: 4px; margin: 2px 0 6px; flex-wrap: wrap; }
+.level-picker button {
+  border: 1px solid var(--paper-edge);
+  background: white;
+  border-radius: 999px;
+  padding: 2px 12px;
+  min-height: 30px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.level-picker button.selected { background: var(--felt); color: var(--paper); border-color: var(--felt); }
+.level-picker button:disabled { opacity: 0.6; }
+.thinking { margin: 0 0 4px; }
+
 /* Double dummy help */
 .card-chip.best { outline: 3px solid var(--gold); outline-offset: 1px; }
 .hint-row { margin-top: 8px; }

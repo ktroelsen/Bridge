@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchGameHint, fetchGameReview, postGame } from '../api';
 import { callLabel, isNorthSouth, SEAT_NAME, VULNERABILITY_NAME } from '../cards';
-import { loadGame, saveGame } from '../storage';
-import type { Card, GameRequest, GameState, Seat } from '../types';
+import { loadGame, loadLevel, saveGame, saveLevel } from '../storage';
+import type { BotLevel, Card, GameRequest, GameState, Seat } from '../types';
+import { LevelPicker } from './LevelPicker';
 import { AuctionTable } from './AuctionTable';
 import { BiddingBox } from './BiddingBox';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
@@ -10,7 +11,7 @@ import { PlayHand } from './PlayHand';
 import { ReviewPanel } from './ReviewPanel';
 import { Rich } from './Rich';
 
-const NEW_GAME: GameRequest = { number: null, calls: [], cards: [] };
+const newGameRequest = (level: BotLevel): GameRequest => ({ level, number: null, calls: [], cards: [] });
 const NO_TRICKS: never[] = [];
 
 /** A full game against the bots: bidding with explanations and hints, then the play. */
@@ -21,6 +22,7 @@ export function GameView({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [level, setLevel] = useState<BotLevel>(loadLevel);
 
   const humanDeclares = game?.contract != null && isNorthSouth(game.contract.declarer);
   const humanControls = useCallback((seat: Seat) => seat === 'south' || (humanDeclares && seat === 'north'), [humanDeclares]);
@@ -55,11 +57,17 @@ export function GameView({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void send(loadGame() ?? NEW_GAME, false);
+    const saved = loadGame();
+    void send(saved && (saved.level ?? 'easy') === loadLevel() ? saved : newGameRequest(loadLevel()), false);
   }, [send]);
 
-  const newGame = () => void send(NEW_GAME, false);
-  const replay = () => game && void send({ number: game.number, calls: [], cards: [] }, false);
+  const newGame = () => void send(newGameRequest(level), false);
+  const replay = () => game && void send({ level, number: game.number, calls: [], cards: [] }, false);
+  const changeLevel = (next: BotLevel) => {
+    setLevel(next);
+    saveLevel(next);
+    void send(newGameRequest(next), false);
+  };
 
   if (!game || !request) {
     return (
@@ -134,6 +142,9 @@ export function GameView({ onBack }: { onBack: () => void }) {
           Nyt spil
         </button>
       </div>
+
+      <LevelPicker level={level} onChange={changeLevel} disabled={busy} />
+      {busy && game.phase === 'play' && <p className="thinking muted small">Botterne tænker …</p>}
 
       {error && <p className="error">{error}</p>}
 

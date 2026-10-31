@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchMiniBridgeHint, fetchMiniBridgeReview, postMiniBridge } from '../api';
 import { fits, suggestContract } from '../coach';
 import { gameLevel, isNorthSouth, isRed, partnerOf, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, STRAINS, SUIT_SYMBOL, VULNERABILITY_NAME } from '../cards';
-import { loadMiniBridge, saveMiniBridge } from '../storage';
-import type { Card, ContractChoice, MiniBridgeRequest, MiniBridgeState, Practice, Seat, Strain } from '../types';
+import { loadLevel, loadMiniBridge, saveLevel, saveMiniBridge } from '../storage';
+import type { BotLevel, Card, ContractChoice, MiniBridgeRequest, MiniBridgeState, Practice, Seat, Strain } from '../types';
+import { LevelPicker } from './LevelPicker';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
 import { PlayHand } from './PlayHand';
 import { ReviewPanel } from './ReviewPanel';
 
-const newGameRequest = (practice: Practice): MiniBridgeRequest => ({ number: null, contract: null, cards: [], practice });
+const newGameRequest = (practice: Practice, level: BotLevel): MiniBridgeRequest => ({ level, number: null, contract: null, cards: [], practice });
 
 const PRACTICE_LABEL: Record<Practice, string | null> = {
   any: null,
@@ -23,6 +24,7 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
   const [game, setGame] = useState<MiniBridgeState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [level, setLevel] = useState<BotLevel>(loadLevel);
 
   const humanDeclares = game?.declarer != null && isNorthSouth(game.declarer);
   const humanControls = useCallback((seat: Seat) => seat === 'south' || (humanDeclares && seat === 'north'), [humanDeclares]);
@@ -54,11 +56,18 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void send(practice === 'any' ? (loadMiniBridge() ?? newGameRequest('any')) : newGameRequest(practice), false);
+    const saved = loadMiniBridge();
+    const resume = practice === 'any' && saved && (saved.level ?? 'easy') === loadLevel();
+    void send(resume ? saved : newGameRequest(practice, loadLevel()), false);
   }, [send, practice]);
 
-  const newGame = () => void send(newGameRequest(practice), false);
-  const replay = () => game && void send({ number: game.number, contract: null, cards: [] }, false);
+  const newGame = () => void send(newGameRequest(practice, level), false);
+  const replay = () => game && void send({ level, number: game.number, contract: null, cards: [] }, false);
+  const changeLevel = (next: BotLevel) => {
+    setLevel(next);
+    saveLevel(next);
+    void send(newGameRequest(practice, next), false);
+  };
 
   if (!game) {
     return (
@@ -101,6 +110,9 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
           Nyt spil
         </button>
       </div>
+
+      <LevelPicker level={level} onChange={changeLevel} disabled={busy} />
+      {busy && game.phase === 'play' && <p className="thinking muted small">Botterne tænker …</p>}
 
       {PRACTICE_LABEL[practice] && <p className="practice-label">{PRACTICE_LABEL[practice]}</p>}
 

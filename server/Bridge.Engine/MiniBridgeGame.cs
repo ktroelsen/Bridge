@@ -48,7 +48,7 @@ public sealed class MiniBridgeGame
         }
     }
 
-    public static MiniBridgeGame Replay(int number, Strain? strain, bool game, IReadOnlyList<Card> humanCards)
+    public static MiniBridgeGame Replay(int number, Strain? strain, bool game, IReadOnlyList<Card> humanCards, BotLevel level = BotLevel.Easy)
     {
         var deal = Deal.FromNumber(number);
         var declarer = MiniBridge.Declarer(deal);
@@ -86,7 +86,8 @@ public sealed class MiniBridgeGame
             }
             else
             {
-                play.Play(EasyBot.Choose(play.ViewFor(seat)));
+                // Everybody announced their points, so the bots may use them.
+                play.Play(PlayBot.Choose(play, seat, level, s => Bidding.Shows.Hcp(deal[s].Hcp, deal[s].Hcp)));
             }
         }
         if (next < humanCards.Count) throw new InvalidPlayException("For mange kort.");

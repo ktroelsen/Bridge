@@ -46,6 +46,12 @@ public sealed class DoubleDummy
     /// <summary>When set, the search gives up with a <see cref="TimeoutException"/> after this time.</summary>
     public DateTime? Deadline { get; set; }
 
+    /// <summary>
+    /// When set, the search gives up with a <see cref="TimeoutException"/> after this many nodes.
+    /// Unlike a deadline this is deterministic: the same position always gives the same outcome.
+    /// </summary>
+    public long? MaxNodes { get; set; }
+
     /// <summary>A solver for the position in a card play (the current trick may be part played).</summary>
     public DoubleDummy(CardPlay play)
     {
@@ -153,7 +159,8 @@ public sealed class DoubleDummy
     /// </summary>
     private bool Search(int needed, int depth, out ulong win)
     {
-        if ((++Nodes & 0xFFF) == 0 && Deadline is { } deadline && DateTime.UtcNow > deadline)
+        if ((++Nodes & 0xFFF) == 0
+            && ((Deadline is { } deadline && DateTime.UtcNow > deadline) || (MaxNodes is { } max && Nodes > max)))
             throw new TimeoutException("Analysen tog for lang tid.");
         win = 0;
         if (needed <= 0) return true;

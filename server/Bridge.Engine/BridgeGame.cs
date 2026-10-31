@@ -59,7 +59,7 @@ public sealed class BridgeGame
         }
     }
 
-    public static BridgeGame Replay(int number, IReadOnlyList<Call> humanCalls, IReadOnlyList<Card> humanCards)
+    public static BridgeGame Replay(int number, IReadOnlyList<Call> humanCalls, IReadOnlyList<Card> humanCards, BotLevel level = BotLevel.Easy)
     {
         var game = new BridgeGame(Deal.FromNumber(number));
         var deal = game.Deal;
@@ -95,6 +95,8 @@ public sealed class BridgeGame
 
         game.Contract = auction.Contract();
         var play = game.Play = new CardPlay(deal, game.Contract!);
+        // What each player's calls showed, for the bots' picture of the hidden hands.
+        var shown = Enum.GetValues<Seat>().ToDictionary(s => s, s => Bidder.Model(deal.Dealer, auction.Calls, s));
         var nextCard = 0;
         while (!play.IsComplete)
         {
@@ -106,7 +108,7 @@ public sealed class BridgeGame
             }
             else
             {
-                play.Play(EasyBot.Choose(play.ViewFor(seat)));
+                play.Play(PlayBot.Choose(play, seat, level, s => shown[s]));
             }
         }
         if (nextCard < humanCards.Count) throw new InvalidPlayException("For mange kort.");

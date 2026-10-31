@@ -4,7 +4,7 @@ namespace Bridge.Api;
 
 public record ContractChoiceDto(Strain Strain, bool Game);
 
-public record MiniBridgeRequest(int? Number, ContractChoiceDto? Contract, List<CardDto>? Cards, Practice Practice = Practice.Any);
+public record MiniBridgeRequest(int? Number, ContractChoiceDto? Contract, List<CardDto>? Cards, Practice Practice = Practice.Any, BotLevel Level = BotLevel.Easy);
 
 public record SeatHcpDto(Seat Seat, int Hcp);
 
@@ -55,7 +55,7 @@ public static class MiniBridgeEndpoints
             try
             {
                 var cards = (request.Cards ?? []).Select(c => new Card(c.Suit, c.Rank)).ToList();
-                var game = MiniBridgeGame.Replay(number, request.Contract?.Strain, request.Contract?.Game ?? false, cards);
+                var game = MiniBridgeGame.Replay(number, request.Contract?.Strain, request.Contract?.Game ?? false, cards, request.Level);
                 return Results.Ok(ToDto(game));
             }
             catch (InvalidPlayException ex)
