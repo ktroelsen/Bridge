@@ -13,7 +13,7 @@ fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
 
 - **Tage lektioner:** Spillets gang, Trumf, Tæl point, Mini-bridge, Kontrakter og udgang,
   Åbningsmeldinger, Svar på åbning, Genmelding, 1UT-systemet, Konkurrencemeldinger, to
-  lektioner om spilføring og Modspil. Spilførings- og modspilslektionerne har øvelser i at tælle
+  lektioner om spilføring, Modspil og Slem (med Blackwood). Spilførings- og modspilslektionerne har øvelser i at tælle
   sikre stik og tabere, udspil, anden hånd lavt og tredje hånd højt, og "Find det bedste
   kort"-opgaver med alle fire hænder åbne, løst af double dummy-løseren
   (`GET /api/quiz/play?stage=early|middle|defend`).
@@ -66,8 +66,8 @@ af en sekvens eller 4. højeste. Som spilfører trækker den trumf og tager sine
 Den beslutter kun ud fra det, den må se (`PlayView`): egen hånd, blinden og spillede kort.
 
 **Meldinger.** `Bridge.Engine/Bidding/BeginnerSystem.cs` er et naturligt begyndersystem
-(5-farvers højfarve, 1UT 15–17, 2♣ stærk, Stayman, overføringer, indmeldinger og
-oplysningsdobling) skrevet som en liste af regler. Hver regel siger, hvornår den gælder, hvilken
+(5-farvers højfarve, 1UT 15–17, 2♣ stærk, Stayman, overføringer, indmeldinger,
+oplysningsdobling og Blackwood) skrevet som en liste af regler. Hver regel siger, hvornår den gælder, hvilken
 melding den giver, og hvad meldingen viser (`Shows`: HP-interval, længder, jævn fordeling).
 Den samme liste bruges til at botten melder, til at forklare alle meldinger, til hints og
 til at bygge et billede af makkers hånd. Når ingen regel passer, placerer botten kontrakten

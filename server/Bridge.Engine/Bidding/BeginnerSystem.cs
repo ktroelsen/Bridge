@@ -10,7 +10,7 @@ public static class BeginnerSystem
     private static readonly Suit[] Majors = [Suit.Spades, Suit.Hearts];
     private static readonly Suit[] AllSuits = [Suit.Spades, Suit.Hearts, Suit.Diamonds, Suit.Clubs];
 
-    public static IReadOnlyList<BidRule> Rules { get; } = [.. Opening(), .. Responses(), .. OpenerRebids(), .. ResponderRebids(), .. Competition()];
+    public static IReadOnlyList<BidRule> Rules { get; } = [.. Blackwood(), .. Opening(), .. Responses(), .. OpenerRebids(), .. ResponderRebids(), .. Competition()];
 
     private static Call C(string text) => Call.Parse(text);
 
@@ -33,6 +33,43 @@ public static class BeginnerSystem
     /// <summary>The longest suit (ties: the higher-ranking).</summary>
     private static Suit Longest(Hand h, IEnumerable<Suit>? among = null) =>
         (among ?? AllSuits).OrderByDescending(h.Length).ThenByDescending(s => s).First();
+
+    // ---------------------------------------------------------------- Blackwood
+
+    /// <summary>Aces in a hand.</summary>
+    public static int Aces(Hand h) => h.Cards.Count(c => c.Rank == Rank.Ace);
+
+    private static IEnumerable<BidRule> Blackwood()
+    {
+        // Answers: 5♣ = 0 or 4 aces, 5♦ = 1, 5♥ = 2, 5♠ = 3.
+        string[] answers = ["5C", "5D", "5H", "5S"];
+        string[] texts = ["0 eller 4 esser", "1 es", "2 esser", "3 esser"];
+        for (var i = 0; i < 4; i++)
+        {
+            var count = i;
+            yield return new($"bw-answer-{i}", Situation.BlackwoodAnswer, _ => C(answers[count]), _ => Shows.Anything, null,
+                (_, h) => Aces(h) % 4 == count, _ => $"Svar på Blackwood: {texts[count]}");
+        }
+
+        // After the answer: slam when at most one ace is missing, otherwise stop at the 5-level.
+        int Missing(BidContext c, Hand h)
+        {
+            var answer = c.Partners[^1];
+            var shown = answer.Level == 5 && answer.Strain != Strain.NoTrump ? (int)answer.Strain : 0;
+            // 5♣ is 0 or 4: with an ace of our own, partner can't have all four.
+            if (shown == 0 && Aces(h) == 0) shown = 4;
+            return 4 - Aces(h) - shown;
+        }
+        Strain Trump(BidContext c) => c.BlackwoodSuit!.Value.ToStrain();
+        yield return new("bw-slam", Situation.AfterBlackwood, c => Call.Bid(6, Trump(c)), _ => Shows.Anything, null,
+            (c, h) => Missing(c, h) <= 1, _ => "Lilleslem: der mangler højst ét es");
+        yield return new("bw-stop", Situation.AfterBlackwood, c => c.Cheapest(Trump(c), 5), _ => Shows.Anything, null,
+            (c, h) => Missing(c, h) >= 2, _ => "Stopper på 5-trinnet: der mangler to esser");
+        yield return new("bw-stop-pass", Situation.AfterBlackwood, _ => Call.Pass, _ => Shows.Anything, c => c.Partners[^1].Strain == Trump(c),
+            (c, h) => Missing(c, h) >= 2, _ => "Pas: der mangler to esser, og makkers svar er i trumffarven");
+        yield return new("bw-slam-high", Situation.AfterBlackwood, c => c.Cheapest(Trump(c), 6), _ => Shows.Anything, null,
+            Text: _ => "Lilleslem");
+    }
 
     // ---------------------------------------------------------------- opening
 

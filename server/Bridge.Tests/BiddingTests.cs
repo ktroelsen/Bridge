@@ -119,3 +119,46 @@ public class BiddingTests
         Assert.InRange(levels[6] + levels[7], 0, 60);
     }
 }
+
+public class BlackwoodTests
+{
+    private static BidChoice Bid(string hand, params string[] before)
+    {
+        var calls = new List<AuctionCall>();
+        var seat = Seat.North;
+        foreach (var c in before)
+        {
+            calls.Add(new AuctionCall(seat, Call.Parse(c)));
+            seat = seat.Next();
+        }
+        return Bidder.Choose(Seat.North, calls, seat, Pbn.Hand(hand));
+    }
+
+    [Theory]
+    [InlineData("K984.Q73.J83.Q92", "5C")]   // no aces
+    [InlineData("A984.Q73.J83.Q92", "5D")]   // one
+    [InlineData("A984.A73.J83.Q92", "5H")]   // two
+    [InlineData("A984.A73.A83.Q92", "5S")]   // three
+    [InlineData("A984.A73.A83.A92", "5C")]   // four
+    public void Answers_show_aces(string hand, string answer) =>
+        // North 1♠, South raised to 3♠, North asks with 4UT; South answers.
+        Assert.Equal(Call.Parse(answer), Bid(hand, "1S", "P", "3S", "P", "4N", "P").Call);
+
+    [Theory]
+    [InlineData("AKQ84.A3.KQJ.K32", "5D", "6S")]   // two aces + one: one missing → slam
+    [InlineData("KQJ84.A3.KQJ.KQ2", "5D", "5S")]   // one ace + one: two missing → stop
+    [InlineData("AKQ84.A3.KQJ.K32", "5C", "5S")]   // two aces, partner none: stop
+    public void Asker_decides_from_the_answer(string hand, string answer, string call) =>
+        // North 1♠, South 3♠, North 4UT, South answers; North decides.
+        Assert.Equal(Call.Parse(call), Bid(hand, "1S", "P", "3S", "P", "4N", "P", answer, "P").Call);
+
+    [Fact]
+    public void Four_notrump_after_a_suit_is_explained_as_blackwood()
+    {
+        var calls = new List<AuctionCall> { new(Seat.North, Call.Parse("1S")), new(Seat.East, Call.Pass), new(Seat.South, Call.Parse("3S")), new(Seat.West, Call.Pass) };
+        Assert.Contains("Blackwood", Bidder.Explain(Seat.North, calls, Seat.North, Call.Parse("4N")));
+        calls.Add(new(Seat.North, Call.Parse("4N")));
+        calls.Add(new(Seat.East, Call.Pass));
+        Assert.Contains("2 esser", Bidder.Explain(Seat.North, calls, Seat.South, Call.Parse("5H")));
+    }
+}

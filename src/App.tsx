@@ -82,12 +82,12 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
         <h2>På vej</h2>
         <ul className="coming">
           <li>
-            <strong>Lektioner om meldinger</strong>
-            <span>Åbning, svar og 1UT-systemet med øvelser.</span>
+            <strong>Stærkere bot</strong>
+            <span>Modstandere og makker, der spiller bedre og bruger det, meldingerne har vist.</span>
           </li>
           <li>
-            <strong>Analyse efter spillet</strong>
-            <span>Se hvad der kunne være spillet bedre, og en stærkere bot.</span>
+            <strong>Statistik</strong>
+            <span>Se dine spil og hvor du oftest taber stik.</span>
           </li>
         </ul>
       </section>

@@ -384,3 +384,29 @@ export function secondHand(): Question {
     };
   }
 }
+
+/** "Partner asks with 4UT (Blackwood): what do you answer?" */
+export function blackwoodAnswer(): Question {
+  const hand = randomDeal().south;
+  const aces = hand.filter((c) => c.rank === 'ace').length;
+  const options = ['5♣', '5♦', '5♥', '5♠'];
+  const names = ['0 eller 4 esser', '1 es', '2 esser', '3 esser'];
+  return {
+    prompt: 'I har fundet en fit i spar, og makker melder 4UT (Blackwood). Hvad svarer du?',
+    visual: { type: 'hand', cards: hand },
+    answer: { type: 'options', options, correct: [aces % 4] },
+    explain: `Du har ${aces === 1 ? '1 es' : `${aces} esser`}, så du svarer ${options[aces % 4]} (${names[aces % 4]}).`,
+  };
+}
+
+/** "How high?" from the points together: part score, game, small or grand slam. */
+export function slamLevel(): Question {
+  const total = pick([20, 22, 24, 26, 28, 30, 31, 33, 34, 35, 37, 38]);
+  const options = ['Delkontrakt', 'Udgang', 'Lilleslem', 'Storeslem'];
+  const correct = total >= 37 ? 3 : total >= 33 ? 2 : total >= 25 ? 1 : 0;
+  return {
+    prompt: `I har en god fit og ${total} HP tilsammen. Hvor højt skal I melde?`,
+    answer: { type: 'options', options, correct: [correct] },
+    explain: `Tommelfingerregel: 25 HP til udgang, 33 til lilleslem (12 stik) og 37 til storeslem (13 stik). Med ${total} HP er det ${options[correct].toLowerCase()}.`,
+  };
+}

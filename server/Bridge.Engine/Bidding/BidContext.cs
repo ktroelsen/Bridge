@@ -14,6 +14,10 @@ public enum Situation
     Overcall,
     /// <summary>Partner overcalled or doubled the opening; my first call.</summary>
     Advance,
+    /// <summary>Partner asked for aces with 4UT (Blackwood): my answer.</summary>
+    BlackwoodAnswer,
+    /// <summary>I asked for aces with 4UT and partner answered: how high to go.</summary>
+    AfterBlackwood,
     Other,
 }
 
@@ -87,8 +91,27 @@ public sealed class BidContext
     public IEnumerable<Suit> OpponentSuits =>
         Calls.Where(c => c.Seat.IsNorthSouth() != Me.IsNorthSouth() && c.Call.Suit is not null).Select(c => c.Call.Suit!.Value).Distinct();
 
+    /// <summary>
+    /// The trump suit agreed before a Blackwood 4UT: the last suit our side bid before it.
+    /// Null when 4UT wasn't Blackwood (no suit bid first, e.g. after 1UT it would ask about points).
+    /// </summary>
+    public Suit? BlackwoodSuit { get; private set; }
+
     private Situation FindSituation()
     {
+        // Blackwood: 4UT by our side right after our side bid a suit.
+        var ours = Calls.Where(c => c.Seat.IsNorthSouth() == Me.IsNorthSouth() && c.Call.IsBid).ToList();
+        var askAt = ours.FindLastIndex(c => c.Call == Call.Parse("4N"));
+        if (askAt > 0 && ours[askAt - 1].Call.Suit is { } agreed)
+        {
+            BlackwoodSuit = agreed;
+            var asker = ours[askAt].Seat;
+            // Partner's 4UT is our side's latest bid, so I haven't answered yet.
+            if (asker == Partner && askAt == ours.Count - 1) return Situation.BlackwoodAnswer;
+            if (asker == Me && askAt == ours.Count - 2 && ours[^1].Seat == Partner)
+                return Situation.AfterBlackwood;
+        }
+
         if (FirstBid is not { } first) return Situation.Opening;
         if (first.Seat == Partner)
         {

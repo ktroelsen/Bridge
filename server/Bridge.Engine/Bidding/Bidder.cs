@@ -26,6 +26,7 @@ public static class Bidder
     {
         var ctx = new BidContext(dealer, before, seat);
         if (RuleFor(ctx, call) is { } rule) return rule.Explain(ctx);
+        if (call == Call.Parse("4N") && IsBlackwood(ctx)) return "Blackwood: spørger, hvor mange esser makker har";
         return call.Kind switch
         {
             CallKind.Pass => "Pas",
@@ -49,6 +50,11 @@ public static class Bidder
         }
         return shows;
     }
+
+    /// <summary>Whether 4UT now would be Blackwood: our side's latest bid is a suit.</summary>
+    private static bool IsBlackwood(BidContext ctx) =>
+        ctx.LastBid is { } last && last.Seat.IsNorthSouth() == ctx.Me.IsNorthSouth() && last.Call.Suit is not null
+        && ctx.Calls.All(c => c.Call != Call.Parse("4N"));
 
     private static BidRule? RuleFor(BidContext ctx, Call call) =>
         BeginnerSystem.Rules.FirstOrDefault(r => r.AppliesTo(ctx) && r.CallIn(ctx) == call);
@@ -74,6 +80,8 @@ public static class Bidder
 
         Call? target;
         string why;
+        if (min >= 33 && fit is not null && IsBlackwood(ctx) && ctx.Legal(Call.Parse("4N")))
+            return new BidChoice(Call.Parse("4N"), $"Blackwood: I har mindst {min} HP tilsammen{fitText}, så der kan være slem. Spørger efter esser", "place-blackwood");
         if (min >= 33)
         {
             target = Call.Bid(min >= 37 ? 7 : 6, majorFit ? fit!.Value.ToStrain() : Strain.NoTrump);

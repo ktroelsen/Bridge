@@ -736,11 +736,63 @@ export const LESSONS: Lesson[] = [
     ],
     practice: { text: 'Spil mini-bridge, hvor modstanderne har kontrakten, og du skal spille modspil.', path: '/minibridge?ov=defend', button: 'Øv i mini-bridge' },
   },
+  {
+    id: 'slem',
+    title: 'Slem',
+    summary: 'Når I kan tage 12 eller 13 stik: hvornår man går efter slem, og hvordan Blackwood finder esserne.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Lilleslem og storeslem',
+        body: [
+          'Et **lilleslem** er en kontrakt på 6-trinnet: I skal tage **12 stik**. Et **storeslem** er på 7-trinnet: **alle 13 stik**.',
+          'Bonussen er stor: 500 for lilleslem (750 i zonen) og 1000 for storeslem (1500 i zonen), oven i udgangsbonussen.',
+          'Tommelfingerregel: med en god fit skal I have omkring **33 HP** tilsammen til lilleslem og **37 HP** til storeslem.',
+        ],
+      },
+      { type: 'drill', title: 'Hvor højt?', intro: 'Brug 25, 33 og 37 HP som grænser.', count: 5, generate: drill.slamLevel },
+      {
+        type: 'text',
+        title: 'Blackwood',
+        body: [
+          'Selv med mange point går et slem ned, hvis modstanderne har **to esser**. Derfor spørger man efter esser, før man melder slem.',
+          'Når I har fundet en fit, og der er point nok til slem, melder du **4UT**. Det hedder **Blackwood** og spørger makker, hvor mange esser makker har.',
+          'Makker svarer: **5♣** = 0 eller 4 esser, **5♦** = 1 es, **5♥** = 2 esser, **5♠** = 3 esser.',
+        ],
+        visual: { type: 'auction', dealer: 'north', calls: ['1S', 'P', '3S', 'P', '4N', 'P'] },
+      },
+      { type: 'drill', title: 'Svar på Blackwood', intro: 'Tæl dine esser.', count: 5, generate: drill.blackwoodAnswer },
+      {
+        type: 'text',
+        title: 'Efter svaret',
+        body: [
+          'Læg dine egne esser til makkers. **Mangler I to esser**, stopper I på 5-trinnet i jeres farve. **Mangler I højst ét**, melder I lilleslem.',
+          'Har I alle fire esser og rigtig mange point, kan I overveje storeslem.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'I har fundet en fit i hjerter. Du melder 4UT, og makker svarer 5♦. Du har selv 2 esser. Hvad melder du?',
+          answer: { type: 'options', options: ['5♥', '6♥', '7♥'], correct: [1] },
+          explain: '5♦ betyder 1 es. Med dine 2 har I 3 esser og mangler kun ét. Meld lilleslem: 6♥.',
+        },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'I har fundet en fit i spar. Du melder 4UT, og makker svarer 5♦. Du har selv 1 es. Hvad melder du?',
+          answer: { type: 'options', options: ['5♠', '6♠', '6UT'], correct: [0] },
+          explain: 'Makker har 1 es og du 1. Modstanderne har to esser, så slem går ned. Stop i 5♠.',
+        },
+      },
+    ],
+    practice: { text: 'Spil bridge med meldinger. Slem er sjældne, men nu ved du, hvad du skal gøre.', path: '/spil', button: 'Spil bridge' },
+  },
 ];
 
 /** Topics that come later (shown as locked in the list). */
-export const COMING_LESSONS = [
-  { title: 'Slem', summary: 'Når I kan tage 12 eller 13 stik.' },
+export const COMING_LESSONS: { title: string; summary: string }[] = [
 ];
 
 export const lessonById = (id: string) => LESSONS.find((l) => l.id === id);
