@@ -12,10 +12,11 @@ fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
   systemet ville have meldt og hvorfor. Man kan fortryde meldinger og kort.
 
 - **Tage lektioner:** Spillets gang, Trumf, Tæl point, Mini-bridge, Kontrakter og udgang,
-  Åbningsmeldinger, Svar på åbning, Genmelding, 1UT-systemet, Konkurrencemeldinger og to
-  lektioner om spilføring. Spilføringslektionerne har øvelser i at tælle sikre stik og tabere og
-  "Find det bedste kort"-opgaver med alle fire hænder åbne, løst af double dummy-løseren
-  (`GET /api/quiz/play?stage=early|middle`).
+  Åbningsmeldinger, Svar på åbning, Genmelding, 1UT-systemet, Konkurrencemeldinger, to
+  lektioner om spilføring og Modspil. Spilførings- og modspilslektionerne har øvelser i at tælle
+  sikre stik og tabere, udspil, anden hånd lavt og tredje hånd højt, og "Find det bedste
+  kort"-opgaver med alle fire hænder åbne, løst af double dummy-løseren
+  (`GET /api/quiz/play?stage=early|middle|defend`).
   Meldelektionerne har "Hvad melder du?"-øvelser, hvor serveren laver en hånd og en
   melderække, og svaret er meldesystemets egen melding med forklaring
   (`GET /api/quiz/bidding?kind=opening|response|ntResponse|rebid|ntOpener|overcall|advance`). Hver

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseHand } from '../deck';
-import { sureWinners, suitLosers } from './drills';
+import { RANK_LABEL } from '../cards';
+import { leadFromSuit, sureWinners, suitLosers } from './drills';
 
 describe('sureWinners', () => {
   it('counts top cards in a row, capped by the longer hand', () => {
@@ -21,5 +22,18 @@ describe('suitLosers', () => {
     expect(suitLosers(hand, 'hearts')).toBe(1); // missing the ace
     expect(suitLosers(hand, 'diamonds')).toBe(1); // a singleton queen
     expect(suitLosers(hand, 'clubs')).toBe(3); // no A, K or Q
+  });
+});
+
+describe('leadFromSuit', () => {
+  const lead = (pbn: string, trump: 'hearts' | null = null) => RANK_LABEL[leadFromSuit(parseHand(pbn), 'spades', trump).card.rank];
+  it('follows the classic lead rules', () => {
+    expect(lead('KQJ74.32.432.432')).toBe('K'); // top of a sequence
+    expect(lead('K9742.32.432.432')).toBe('4'); // 4th best
+    expect(lead('92.K32.8432.5432')).toBe('9'); // top of a doubleton
+    expect(lead('K92.J32.8432.543')).toBe('2'); // low from an honour
+    expect(lead('972.J32.8432.543')).toBe('9'); // top of nothing
+    expect(lead('A972.J32.843.543', 'hearts')).toBe('E'); // no underlead of an ace against a suit contract
+    expect(lead('A972.J32.843.543')).toBe('2'); // but fine against no trump
   });
 });

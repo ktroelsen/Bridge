@@ -672,11 +672,74 @@ export const LESSONS: Lesson[] = [
     ],
     practice: { text: 'Spil mini-bridge, hvor I har en trumffit, og brug teknikkerne.', path: '/minibridge?ov=trumpFit', button: 'Øv i mini-bridge' },
   },
+  {
+    id: 'modspil',
+    title: 'Modspil',
+    summary: 'Udspillet, anden hånd lavt, tredje hånd højt og signaler til makker.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Udspillet',
+        body: [
+          'Når modstanderne har kontrakten, er I **modspillere**. Jeres mål er at tage nok stik til at **sætte** kontrakten (få den til at gå ned).',
+          'Udspillet er det eneste kort, du spiller uden at kunne se blinden, og det er ofte vigtigt. **Hvilken farve?**',
+          '**Makkers farve**, hvis makker har meldt. **Mod uden trumf:** din længste farve, så dine små kort bliver til stik. **Mod trumf:** helst en sekvens (fx K-D-Kn) eller en single, som makker måske kan give dig en stjæler i. Undgå at spille ud fra en konge eller under et es.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Hvilket kort?',
+        body: [
+          '**To kort i træk øverst** (fx K-D-x): spil det øverste.',
+          '**Fire kort eller flere** uden kort i træk: spil det **4. højeste**.',
+          '**To kort:** spil det højeste. **Tre kort med en honnør** (fx K-9-2): spil det laveste. **Tre små** (fx 9-7-2): spil det højeste.',
+          'Mod en **trumfkontrakt** spiller du esset ud, hvis du vælger en farve med es uden konge.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Modstanderne spiller 3UT. Du spiller spar ud. Hvilket kort?',
+          visual: { type: 'hand', cards: parseHand('KQJ74.832.Q43.92') },
+          answer: { type: 'options', options: ['♠K', '♠D', '♠7', '♠4'], correct: [0] },
+          explain: 'K-D-Kn er tre kort i træk. Spil det øverste: ♠K. Makker ved så, at du også har damen.',
+        },
+      },
+      { type: 'drill', title: 'Udspil', intro: 'Farven er valgt. Find det rigtige kort.', count: 6, generate: drill.leadCard },
+      {
+        type: 'text',
+        title: 'Anden hånd lavt, tredje hånd højt',
+        body: [
+          '**Anden hånd lavt:** Sidder du lige efter den, der spillede ud, lægger du normalt et lille kort. Makker sidder sidst og kan vinde billigt, og dine høje kort skal bruges til at slå spilførerens honnører.',
+          '**Tredje hånd højt:** Har makker spillet et lille kort ud, lægger du højt, så spilføreren må bruge et højt kort for at vinde. Har du kort i træk (fx D-Kn), lægger du det **laveste** af dem.',
+        ],
+      },
+      { type: 'drill', title: 'Anden hånd', intro: 'Blinden spiller et lille kort ud, og du sidder lige efter.', count: 3, generate: drill.secondHand },
+      { type: 'drill', title: 'Tredje hånd', intro: 'Makker har spillet et lille kort ud.', count: 4, generate: drill.thirdHand },
+      {
+        type: 'text',
+        title: 'Signaler',
+        body: [
+          'Når du ikke skal vinde stikket, kan dit kort fortælle makker noget. Et **højt lille kort** (fx 8) betyder "jeg kan lide farven, fortsæt". Det **laveste** kort betyder "skift til noget andet".',
+          'Det samme gælder, når du ikke kan bekende og smider et kort: smid lavt fra farver, du ikke vil have spillet, og højt i den farve, du gerne vil have.',
+          'Botterne her i appen bruger ikke signaler endnu, men det er godt at vænne sig til.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Find det bedste modspil',
+        body: [
+          'Til sidst nogle opgaver med **alle kort åbne**. Modstanderne har kontrakten, og du skal spille ud. Find det kort, der giver jer flest stik.',
+        ],
+      },
+      { type: 'play', title: 'Find det bedste modspil', intro: 'Alle kort er åbne. Du sidder Syd og skal spille ud.', count: 4, stage: 'defend' },
+    ],
+    practice: { text: 'Spil mini-bridge, hvor modstanderne har kontrakten, og du skal spille modspil.', path: '/minibridge?ov=defend', button: 'Øv i mini-bridge' },
+  },
 ];
 
 /** Topics that come later (shown as locked in the list). */
 export const COMING_LESSONS = [
-  { title: 'Modspil', summary: 'Udspil, signaler og samarbejde med makker.' },
   { title: 'Slem', summary: 'Når I kan tage 12 eller 13 stik.' },
 ];
 

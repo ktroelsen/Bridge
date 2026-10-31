@@ -14,8 +14,8 @@ export type Visual =
 export type Answer =
   /** Buttons; any of the correct indices counts as right. */
   | { type: 'options'; options: string[]; correct: number[] }
-  /** Click a card in the hand; any of the correct cards counts as right. */
-  | { type: 'card'; hand: Card[]; correct: Card[] }
+  /** Click a card in the hand; any of the correct cards counts as right. Only `legal` cards (default: all) can be clicked. */
+  | { type: 'card'; hand: Card[]; correct: Card[]; legal?: Card[] }
   /** A number (buttons for small ranges, otherwise an input field). */
   | { type: 'number'; min: number; max: number; correct: number };
 
@@ -34,7 +34,7 @@ export type Step =
   /** "What do you bid?" questions from the server, answered by the bidding system. */
   | { type: 'bidding'; title: string; intro: string; count: number; quiz: QuizKind }
   /** "Find the best card": declarer play problems from the server, all hands open. */
-  | { type: 'play'; title: string; intro: string; count: number; stage: 'early' | 'middle' };
+  | { type: 'play'; title: string; intro: string; count: number; stage: 'early' | 'middle' | 'defend' };
 
 
 export interface Lesson {

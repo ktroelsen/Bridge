@@ -11,6 +11,7 @@ function check(q: Question) {
   } else if (a.type === 'card') {
     expect(a.correct.length).toBeGreaterThan(0);
     a.correct.forEach((c) => expect(a.hand.some((h) => sameCard(h, c))).toBe(true));
+    if (a.legal) a.correct.forEach((c) => expect(a.legal!.some((l) => sameCard(l, c))).toBe(true));
   } else {
     expect(a.correct).toBeGreaterThanOrEqual(a.min);
     expect(a.correct).toBeLessThanOrEqual(a.max);

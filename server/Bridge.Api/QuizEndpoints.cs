@@ -35,14 +35,14 @@ public static class QuizEndpoints
     /// <summary>GET /api/quiz/bidding?kind=opening|response|ntResponse: a fresh "what do you bid?" question.</summary>
     public static void MapQuizEndpoints(this IEndpointRouteBuilder app)
     {
-        // GET /api/quiz/play?stage=early|middle: a declarer play problem with all hands open.
+        // GET /api/quiz/play?stage=early|middle|defend: a play problem with all hands open.
         app.MapGet("/api/quiz/play", (string? stage) =>
         {
-            var (from, to) = stage == "middle" ? (6, 9) : (3, 4);
+            var (from, to) = stage switch { "middle" => (6, 9), "defend" => (2, 6), _ => (3, 4) };
             PlayQuestion q;
             try
             {
-                q = PlayQuiz.Make(from, to, Random.Shared, TimeSpan.FromSeconds(12));
+                q = PlayQuiz.Make(from, to, Random.Shared, TimeSpan.FromSeconds(12), defend: stage == "defend");
             }
             catch (TimeoutException)
             {

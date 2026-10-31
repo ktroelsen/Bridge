@@ -53,4 +53,4 @@ export const fetchGameReview = (request: GameRequest) => post<Review>('/api/game
 export const fetchMiniBridgeReview = (request: MiniBridgeRequest) => post<Review>('/api/minibridge/review', request);
 
 /** A declarer play problem with all four hands open, solved double dummy. */
-export const fetchPlayQuestion = (stage: 'early' | 'middle') => call<PlayQuestion>(`/api/quiz/play?stage=${stage}`);
+export const fetchPlayQuestion = (stage: 'early' | 'middle' | 'defend') => call<PlayQuestion>(`/api/quiz/play?stage=${stage}`);

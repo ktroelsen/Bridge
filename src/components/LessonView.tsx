@@ -13,7 +13,7 @@ type Screen =
   | { kind: 'text'; title: string; body: string[]; visual?: Visual }
   | { kind: 'question'; question: Question; title?: string; intro?: string; index?: number; count?: number }
   | { kind: 'bidding'; quiz: QuizKind; title: string; intro: string; index: number; count: number }
-  | { kind: 'play'; stage: 'early' | 'middle'; title: string; intro: string; index: number; count: number };
+  | { kind: 'play'; stage: 'early' | 'middle' | 'defend'; title: string; intro: string; index: number; count: number };
 
 /** Flattens a lesson into screens; drill questions are made fresh each time the lesson starts. */
 function screensOf(lesson: Lesson): Screen[] {

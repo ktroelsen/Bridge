@@ -31,7 +31,7 @@ function OpenHand({ seat, cards, label }: { seat: Seat; cards: Card[]; label?: s
 const tricks = (n: number) => (n === 1 ? '1 stik' : `${n} stik`);
 
 /** "Find the best card": all four hands open; the player picks a card from the hand on lead. */
-export function PlayQuestionView({ stage, answered, onAnswer }: { stage: 'early' | 'middle'; answered: boolean; onAnswer: (correct: boolean) => void }) {
+export function PlayQuestionView({ stage, answered, onAnswer }: { stage: 'early' | 'middle' | 'defend'; answered: boolean; onAnswer: (correct: boolean) => void }) {
   const [q, setQ] = useState<PlayQuestion | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [given, setGiven] = useState<Card | null>(null);
@@ -51,19 +51,29 @@ export function PlayQuestionView({ stage, answered, onAnswer }: { stage: 'early'
 
   const needed = q.contract.level + 6;
   const handOf = (seat: Seat) => q.hands.find((h) => h.seat === seat)?.cards ?? [];
-  const dummy: Seat = q.contract.declarer === 'south' ? 'north' : 'south';
+  const dummy: Seat = ({ north: 'south', south: 'north', east: 'west', west: 'east' } as const)[q.contract.declarer];
   const role = (seat: Seat) => (seat === q.contract.declarer ? 'Spilfører' : seat === dummy ? 'Blind' : undefined);
   const right = given !== null && q.best.some((b) => sameCard(b, given));
   const givenTricks = given ? q.values.find((v) => sameCard(v.card, given))?.tricks : undefined;
   const lead = q.toPlay;
+  const defending = q.contract.declarer === 'east' || q.contract.declarer === 'west';
+  // Tricks the defenders need to beat the contract.
+  const toBeat = 14 - needed;
 
   return (
     <div className="question">
-      <p className="prompt">
-        Kontrakt {contractText(q.contract)} ({tricks(needed)}). {q.trick - 1} stik er spillet: I har taget {q.tricksNorthSouth}, modstanderne{' '}
-        {q.tricksEastWest}. {lead === q.contract.declarer ? 'Spilføreren' : 'Blinden'} ({SEAT_NAME[lead]}) skal spille ud, og du spiller begge
-        hænder. Hvilket kort giver flest stik?
-      </p>
+      {defending ? (
+        <p className="prompt">
+          {SEAT_NAME[q.contract.declarer]} spiller {contractText(q.contract)}. I skal tage {tricks(toBeat)} for at sætte kontrakten. {q.trick - 1} stik er
+          spillet: I har taget {q.tricksNorthSouth}, modstanderne {q.tricksEastWest}. Du (Syd) skal spille ud. Hvilket kort giver jer flest stik?
+        </p>
+      ) : (
+        <p className="prompt">
+          Kontrakt {contractText(q.contract)} ({tricks(needed)}). {q.trick - 1} stik er spillet: I har taget {q.tricksNorthSouth}, modstanderne{' '}
+          {q.tricksEastWest}. {lead === q.contract.declarer ? 'Spilføreren' : 'Blinden'} ({SEAT_NAME[lead]}) skal spille ud, og du spiller begge
+          hænder. Hvilket kort giver flest stik?
+        </p>
+      )}
       <div className="table">
         {(['north', 'west', 'east', 'south'] as Seat[]).map((seat) => (
           <div key={seat} className={`slot ${seat}`}>
@@ -71,7 +81,7 @@ export function PlayQuestionView({ stage, answered, onAnswer }: { stage: 'early'
             {seat === lead && (
               <div className={`seat-box ${answered ? '' : 'active'}`}>
                 <div className="seat-label">
-                  <strong>{SEAT_NAME[seat]}</strong>
+                  <strong>{SEAT_NAME[seat]}{defending ? ' (dig)' : ''}</strong>
                   {role(seat) && <span className="role">{role(seat)}</span>}
                 </div>
                 <PlayHand
@@ -102,7 +112,13 @@ export function PlayQuestionView({ stage, answered, onAnswer }: { stage: 'early'
           <strong>{right ? `Rigtigt: ${cardLabel(given)}.` : `${cardLabel(given)} giver ${tricks(givenTricks ?? 0)}.`}</strong>{' '}
           {right ? '' : `Bedst er ${q.best.slice(0, 3).map(cardLabel).join(' eller ')}${q.best.length > 3 ? ' m.fl.' : ''}. `}
           Med det bedste kort tager I {tricks(q.bestTricks)} i alt, når alle spiller perfekt
-          {q.bestTricks >= needed ? ', og kontrakten vindes.' : ` (kontrakten kræver ${needed}).`}
+          {defending
+            ? q.bestTricks >= toBeat
+              ? ', og kontrakten går ned.'
+              : ` (I skal bruge ${toBeat} for at sætte den).`
+            : q.bestTricks >= needed
+              ? ', og kontrakten vindes.'
+              : ` (kontrakten kræver ${needed}).`}
         </div>
       )}
     </div>

@@ -70,6 +70,19 @@ public class PlayQuizTests(TestFactory factory) : IClassFixture<TestFactory>
     }
 
     [Fact]
+    public void Defence_problems_have_south_on_lead_against_east_west()
+    {
+        var random = new Random(5);
+        for (var i = 0; i < 5; i++)
+        {
+            var q = Bridge.Engine.Analysis.PlayQuiz.Make(2, 6, random, TimeSpan.FromSeconds(30), defend: true);
+            Assert.Equal(Seat.South, q.Play.NextToPlay);
+            Assert.False(q.Play.Contract.Declarer.IsNorthSouth());
+            Assert.True(q.Best.Values.Values.Min() < q.Best.SideTricks);
+        }
+    }
+
+    [Fact]
     public async Task Play_quiz_endpoint_returns_a_problem()
     {
         var q = (await factory.CreateClient().GetFromJsonAsync<PlayQuestionDto>("/api/quiz/play?stage=early", TestFactory.Json))!;
