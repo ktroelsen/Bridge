@@ -251,8 +251,13 @@ export function sureWinners(north: Card[], south: Card[]) {
 
 /** "How many sure tricks?" in no trump, with North as dummy. */
 export function countWinners(): Question {
-  const deal = randomDeal();
-  const per = sureWinners(deal.north, deal.south);
+  let deal = randomDeal();
+  let per = sureWinners(deal.north, deal.south);
+  // Rare deals add up to more than 13 (long suits in both hands); a deal only has 13 tricks.
+  while (per.reduce((n, s) => n + s.sure, 0) > 13) {
+    deal = randomDeal();
+    per = sureWinners(deal.north, deal.south);
+  }
   const total = per.reduce((n, s) => n + s.sure, 0);
   const parts = per.filter((s) => s.sure > 0).map((s) => `${SUIT_SYMBOL[s.suit]} ${s.sure}`);
   const capped = per.find((s) => s.tops > s.sure);
