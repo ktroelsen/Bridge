@@ -386,6 +386,14 @@ body {
 .lesson-done .tip { margin: 12px 0; }
 .lesson-done .tip p { margin: 0 0 8px; }
 
+/* Double dummy table */
+.dd-table { border-collapse: collapse; margin: 6px 0 10px; font-variant-numeric: tabular-nums; }
+.dd-table th, .dd-table td { padding: 4px 10px; text-align: center; border-bottom: 1px solid var(--paper-edge); }
+.dd-table tbody th { text-align: left; font-weight: 600; }
+.dd-table td.game { background: #e6f1e3; font-weight: 700; }
+.dd-table td.slam { background: #fbe8b8; font-weight: 700; }
+.dd-table td.pending { color: var(--muted); }
+
 /* Bot level */
 .level-picker { display: flex; align-items: center; gap: 4px; margin: 2px 0 6px; flex-wrap: wrap; }
 .level-picker button {

@@ -89,17 +89,34 @@ public sealed class DoubleDummy
 
     private int RemainingTricks => (BitOperations.PopCount(_hands[0] | _hands[1] | _hands[2] | _hands[3]) + _count + 3) / 4;
 
-    /// <summary>Tricks North-South take from here on (counting the current trick).</summary>
-    public int NorthSouthTricks()
+    /// <summary>
+    /// Tricks North-South take from here on (counting the current trick). A good
+    /// <paramref name="guess"/> (say, the result for a similar position) saves searches: the
+    /// search starts there and steps up or down.
+    /// </summary>
+    public int NorthSouthTricks(int? guess = null)
     {
-        int lo = 0, hi = RemainingTricks;
-        while (lo < hi)
+        var remaining = RemainingTricks;
+        if (guess is not { } g)
         {
-            var mid = (lo + hi + 1) / 2;
-            if (Search(mid, 0, out _)) lo = mid;
-            else hi = mid - 1;
+            int lo = 0, hi = remaining;
+            while (lo < hi)
+            {
+                var mid = (lo + hi + 1) / 2;
+                if (Search(mid, 0, out _)) lo = mid;
+                else hi = mid - 1;
+            }
+            return lo;
         }
-        return lo;
+
+        g = Math.Clamp(g, 0, remaining);
+        if (Search(g, 0, out _))
+        {
+            while (g < remaining && Search(g + 1, 0, out _)) g++;
+            return g;
+        }
+        while (g > 0 && !Search(g - 1, 0, out _)) g--;
+        return Math.Max(g - 1, 0);
     }
 
     /// <summary>

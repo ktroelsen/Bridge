@@ -82,10 +82,6 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
         <h2>På vej</h2>
         <ul className="coming">
           <li>
-            <strong>Optimal kontrakt</strong>
-            <span>Se efter spillet, hvad der kunne vindes i hver farve.</span>
-          </li>
-          <li>
             <strong>Statistik</strong>
             <span>Se dine spil og hvor du oftest taber stik.</span>
           </li>

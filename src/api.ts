@@ -1,4 +1,4 @@
-import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, PlayQuestion, QuizKind, Review } from './types';
+import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, PlayQuestion, QuizKind, Review, Strain } from './types';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -54,3 +54,9 @@ export const fetchMiniBridgeReview = (request: MiniBridgeRequest) => post<Review
 
 /** A declarer play problem with all four hands open, solved double dummy. */
 export const fetchPlayQuestion = (stage: 'early' | 'middle' | 'defend') => call<PlayQuestion>(`/api/quiz/play?stage=${stage}`);
+
+/** One strain of the double dummy table after the deal: tricks for declarer North, East, South, West (-1: unknown). */
+export const fetchGameTable = (request: GameRequest, strain: Strain) =>
+  post<{ strain: Strain; tricks: number[] }>(`/api/game/table?strain=${strain}`, request);
+export const fetchMiniBridgeTable = (request: MiniBridgeRequest, strain: Strain) =>
+  post<{ strain: Strain; tricks: number[] }>(`/api/minibridge/table?strain=${strain}`, request);

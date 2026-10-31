@@ -34,7 +34,8 @@ fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
   udspil), og træneren kan foreslå en kontrakt.
 - **Få hjælp i kortspillet:** "Hvad er bedst?" markerer de bedste kort, og efter spillet viser
   "Gennemgå spillet", hvor mange stik spilføreren kunne have taget med perfekt spil, og hvilke
-  kort der kostede stik (dine, makkers og modstandernes). Begge dele bruger en double
+  kort der kostede stik (dine, makkers og modstandernes). "Hvad kunne vindes?" viser stik for
+  hver spilfører i hver farve med perfekt spil og den bedste kontrakt for hvert par. Begge dele bruger en double
   dummy-løser (alle kort åbne) i `Bridge.Engine/Analysis/`.
 - **Tælle point:** se kortgivninger med alle fire hænder åbne.
 
@@ -161,6 +162,9 @@ Engangsopsætning:
   kort for dig lige nu og antal stik, din side så tager med perfekt spil.
 - `POST /api/game/review` og `POST /api/minibridge/review` (et færdigt spil): stik med perfekt
   spil og hver fejl med stik, sæde, kort, hvad den kostede og bedre kort.
+- `POST /api/game/table?strain=spades` og `POST /api/minibridge/table?strain=...` (et færdigt
+  spil): stik for spilfører Nord, Øst, Syd og Vest i én farve (-1 hvis det tog for lang tid).
+  Siden henter én farve ad gangen.
 - `POST /api/players` med `{ "name": "Kasper" }` opretter eller finder en spiller (navnet er
   nøglen, uden forskel på store og små bogstaver).
 - `GET /api/players/{navn}/progress` giver den bedste score pr. lektion.

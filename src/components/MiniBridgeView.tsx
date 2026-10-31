@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchMiniBridgeHint, fetchMiniBridgeReview, postMiniBridge } from '../api';
+import { fetchMiniBridgeHint, fetchMiniBridgeReview, fetchMiniBridgeTable, postMiniBridge } from '../api';
 import { fits, suggestContract } from '../coach';
 import { gameLevel, isNorthSouth, isRed, partnerOf, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, STRAINS, SUIT_SYMBOL, VULNERABILITY_NAME } from '../cards';
 import { loadLevel, loadMiniBridge, saveLevel, saveMiniBridge } from '../storage';
@@ -7,6 +7,7 @@ import type { BotLevel, Card, ContractChoice, MiniBridgeRequest, MiniBridgeState
 import { LevelPicker } from './LevelPicker';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
 import { PlayHand } from './PlayHand';
+import { OptimalPanel } from './OptimalPanel';
 import { ReviewPanel } from './ReviewPanel';
 
 const newGameRequest = (practice: Practice, level: BotLevel): MiniBridgeRequest => ({ level, number: null, contract: null, cards: [], practice });
@@ -162,6 +163,15 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
           onReplay={replay}
         >
           {request && <ReviewPanel key={game.number} contract={contract} load={() => fetchMiniBridgeReview(request)} />}
+          {request && (
+            <OptimalPanel
+              key={`t${game.number}`}
+              contract={contract}
+              vulnerability={game.vulnerability}
+              scoreNorthSouth={game.scoreNorthSouth ?? 0}
+              load={(strain) => fetchMiniBridgeTable(request, strain)}
+            />
+          )}
         </GameResult>
       )}
     </section>

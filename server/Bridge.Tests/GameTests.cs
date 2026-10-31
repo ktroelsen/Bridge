@@ -141,3 +141,31 @@ public class AnalysisApiTests(TestFactory factory) : IClassFixture<TestFactory>
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
+
+public class TableApiTests(TestFactory factory) : IClassFixture<TestFactory>
+{
+    [Fact]
+    public async Task Table_is_only_given_after_the_deal()
+    {
+        var client = factory.CreateClient();
+        var number = Enumerable.Range(1, 500).First(n => MiniBridge.Declarer(Deal.FromNumber(n))?.IsNorthSouth() == false);
+        var unfinished = await client.PostAsJsonAsync("/api/minibridge/table?strain=spades", new MiniBridgeRequest(number, null, []), TestFactory.Json);
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, unfinished.StatusCode);
+
+        // Finish the deal with the first legal card each time.
+        var cards = new List<CardDto>();
+        while (true)
+        {
+            var r = await client.PostAsJsonAsync("/api/minibridge", new MiniBridgeRequest(number, null, cards), TestFactory.Json);
+            var g = (await r.Content.ReadFromJsonAsync<MiniBridgeDto>(TestFactory.Json))!;
+            if (g.Phase == GamePhase.Done) break;
+            cards.Add(g.LegalCards[0]);
+        }
+        var response = await client.PostAsJsonAsync("/api/minibridge/table?strain=noTrump", new MiniBridgeRequest(number, null, cards), TestFactory.Json);
+        response.EnsureSuccessStatusCode();
+        var row = (await response.Content.ReadFromJsonAsync<StrainTricksDto>(TestFactory.Json))!;
+        Assert.Equal(Strain.NoTrump, row.Strain);
+        Assert.Equal(4, row.Tricks.Count);
+        Assert.All(row.Tricks, t => Assert.InRange(t, -1, 13));
+    }
+}

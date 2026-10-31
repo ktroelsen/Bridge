@@ -10,6 +10,9 @@ public enum MistakeBy { You, Partner, Opponents }
 
 public record MistakeDto(int Trick, Seat Seat, MistakeBy By, CardDto Card, int Cost, IReadOnlyList<CardDto> Better);
 
+/// <summary>Tricks for declarer North, East, South and West in one strain (-1: not worked out in time).</summary>
+public record StrainTricksDto(Strain Strain, IReadOnlyList<int> Tricks);
+
 public record ReviewDto(int DeclarerTricksPerfect, int DeclarerTricks, bool Complete, IReadOnlyList<MistakeDto> Mistakes);
 
 /// <summary>
@@ -20,6 +23,7 @@ public static class AnalysisEndpoints
 {
     private static readonly TimeSpan HintBudget = TimeSpan.FromSeconds(8);
     private static readonly TimeSpan ReviewBudget = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan TableBudget = TimeSpan.FromSeconds(8);
 
     public static void MapAnalysisEndpoints(this IEndpointRouteBuilder app)
     {
@@ -27,6 +31,13 @@ public static class AnalysisEndpoints
             Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards), request.Level), g => g.Play, g => g.HumanControls, Hint));
         app.MapPost("/api/game/review", (GameRequest request) =>
             Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards), request.Level), g => g.Play, g => g.HumanControls, Review));
+        // One strain of the double dummy table per call, so the page can fill it in as it goes.
+        app.MapPost("/api/game/table", (GameRequest request, string strain) =>
+            Run(() => BridgeGame.Replay(Number(request.Number), Calls(request.Calls), Cards(request.Cards), request.Level), g => g.Play, g => g.HumanControls,
+                (p, _) => Table(p, strain)));
+        app.MapPost("/api/minibridge/table", (MiniBridgeRequest request, string strain) =>
+            Run(() => MiniBridgeGame.Replay(Number(request.Number), request.Contract?.Strain, request.Contract?.Game ?? false, Cards(request.Cards), request.Level),
+                g => g.Play, g => g.HumanControls, (p, _) => Table(p, strain)));
         app.MapPost("/api/minibridge/hint", (MiniBridgeRequest request) =>
             Run(() => MiniBridgeGame.Replay(Number(request.Number), request.Contract?.Strain, request.Contract?.Game ?? false, Cards(request.Cards), request.Level),
                 g => g.Play, g => g.HumanControls, Hint));
@@ -69,6 +80,15 @@ public static class AnalysisEndpoints
         {
             return Results.Problem("Analysen tog for lang tid.", statusCode: 503);
         }
+    }
+
+    private static IResult Table(CardPlay play, string strainText)
+    {
+        if (!Enum.TryParse<Strain>(strainText, ignoreCase: true, out var strain) || !Enum.IsDefined(strain))
+            return Results.BadRequest(new { error = "Ukendt farve." });
+        // Only after the deal: the table tells a lot about the hidden hands.
+        if (!play.IsComplete) return Results.BadRequest(new { error = "Spillet er ikke slut." });
+        return Results.Ok(new StrainTricksDto(strain, ContractTable.ForStrain(play.Deal, strain, TableBudget)));
     }
 
     private static IResult Review(CardPlay play, Func<Seat, bool> human)

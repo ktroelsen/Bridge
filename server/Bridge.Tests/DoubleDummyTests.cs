@@ -136,3 +136,36 @@ public class PlayAnalysisTests
         Assert.False(review.Complete);
     }
 }
+
+public class ContractTableTests
+{
+    [Fact]
+    public void Table_matches_single_solves_and_finds_the_best_contract()
+    {
+        // North-South hold everything in spades and hearts: 13 tricks in either major.
+        var deal = Pbn.Deal(
+            north: "AKQJT98.765432..", east: "..AKQJT98765432.", south: "765432.AKQJT98..", west: "...AKQJT98765432");
+        var spades = ContractTable.ForStrain(deal, Strain.Spades, TimeSpan.FromSeconds(30));
+        Assert.Equal([13, 0, 13, 0], spades);
+        var guessFree = new DoubleDummy(new CardPlay(deal, new Contract(1, Strain.Hearts, Seat.East))).NorthSouthTricks();
+        Assert.Equal(13 - guessFree, ContractTable.ForStrain(deal, Strain.Hearts, TimeSpan.FromSeconds(30))[(int)Seat.East]);
+
+        var table = ContractTable.For(deal, TimeSpan.FromSeconds(60));
+        Assert.True(table.Complete);
+        Assert.Equal(7, table.NorthSouth!.Contract.Level);
+        Assert.True(table.NorthSouth.Contract.Strain is Strain.Spades or Strain.Hearts);
+    }
+
+    [Fact]
+    public void A_guess_gives_the_same_answer()
+    {
+        for (var n = 1; n <= 6; n++)
+        {
+            var play = new CardPlay(Deal.FromNumber(n), new Contract(1, Strain.Hearts, Seat.South));
+            for (var i = 0; i < 24; i++) play.Play(EasyBot.Choose(play.ViewFor(play.NextToPlay)));
+            var exact = new DoubleDummy(play).NorthSouthTricks();
+            foreach (var guess in new[] { 0, 3, 7, 13 })
+                Assert.Equal(exact, new DoubleDummy(play).NorthSouthTricks(guess));
+        }
+    }
+}

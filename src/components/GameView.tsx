@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchGameHint, fetchGameReview, postGame } from '../api';
+import { fetchGameHint, fetchGameReview, fetchGameTable, postGame } from '../api';
 import { callLabel, isNorthSouth, SEAT_NAME, VULNERABILITY_NAME } from '../cards';
 import { loadGame, loadLevel, saveGame, saveLevel } from '../storage';
 import type { BotLevel, Card, GameRequest, GameState, Seat } from '../types';
@@ -8,6 +8,7 @@ import { AuctionTable } from './AuctionTable';
 import { BiddingBox } from './BiddingBox';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
 import { PlayHand } from './PlayHand';
+import { OptimalPanel } from './OptimalPanel';
 import { ReviewPanel } from './ReviewPanel';
 import { Rich } from './Rich';
 
@@ -231,6 +232,13 @@ export function GameView({ onBack }: { onBack: () => void }) {
           onReplay={replay}
         >
           <ReviewPanel key={game.number} contract={contract} load={() => fetchGameReview(request)} />
+          <OptimalPanel
+            key={`t${game.number}`}
+            contract={contract}
+            vulnerability={game.vulnerability}
+            scoreNorthSouth={game.scoreNorthSouth ?? 0}
+            load={(strain) => fetchGameTable(request, strain)}
+          />
         </GameResult>
       )}
     </section>
