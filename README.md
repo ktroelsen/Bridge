@@ -37,6 +37,11 @@ fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
   kort der kostede stik (dine, makkers og modstandernes). "Hvad kunne vindes?" viser stik for
   hver spilfører i hver farve med perfekt spil og den bedste kontrakt for hvert par. Begge dele bruger en double
   dummy-løser (alle kort åbne) i `Bridge.Engine/Analysis/`.
+- **Udfordre en ven:** opret en udfordring (bridge eller mini-bridge, botniveau, 4/8/12 spil)
+  og del koden eller linket. Alle spiller de samme spil mod botterne, når det passer dem, uden
+  hints og fortryd. Kun det første resultat pr. spil tæller. Stillingen regnes i matchpoint
+  (hvor mange du slog spil for spil) over de spil, du selv har spillet, og andres resultat på et
+  spil vises først, når du selv har spillet det.
 - **Følge med i statistikken:** med et navn gemmes hvert færdigt spil (serveren genspiller det
   og regner selv resultatet ud). Statistiksiden viser, hvor ofte du vinder dine kontrakter og
   sætter modstandernes pr. botniveau, og dine seneste spil med "Spil igen".
@@ -171,6 +176,11 @@ Engangsopsætning:
 - `POST /api/players/{navn}/games/mini` og `.../games/full` (et færdigt spil, samme body som
   spillet) gemmer spillet; samme spil gemmes kun én gang. `GET /api/players/{navn}/stats` giver
   statistik pr. botniveau og de seneste 30 spil.
+- `POST /api/challenges` med `{ "name", "mode": "mini"|"full", "level", "games": 4|8|12 }`
+  opretter en udfordring. `GET /api/challenges/{kode}?name=...` giver spillene, resultaterne
+  (skjult for spil, du ikke har spillet) og stillingen. Spil gemmes i en udfordring med
+  `?challenge={kode}` på `POST /api/players/{navn}/games/...`. `GET /api/players/{navn}/challenges`
+  viser dine udfordringer.
 - `POST /api/players` med `{ "name": "Kasper" }` opretter eller finder en spiller (navnet er
   nøglen, uden forskel på store og små bogstaver).
 - `GET /api/players/{navn}/progress` giver den bedste score pr. lektion.

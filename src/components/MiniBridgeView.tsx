@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchMiniBridgeHint, fetchMiniBridgeReview, fetchMiniBridgeTable, postMiniBridge, saveMiniBridgeGame } from '../api';
 import { fits, suggestContract } from '../coach';
 import { gameLevel, isNorthSouth, isRed, partnerOf, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, STRAINS, SUIT_SYMBOL, VULNERABILITY_NAME } from '../cards';
-import { loadLevel, loadMiniBridge, saveLevel, saveMiniBridge } from '../storage';
-import type { BotLevel, Card, ContractChoice, MiniBridgeRequest, MiniBridgeState, Practice, Seat, Strain } from '../types';
+import { loadChallengeGame, loadLevel, loadMiniBridge, saveChallengeGame, saveLevel, saveMiniBridge } from '../storage';
+import type { BotLevel, Card, ChallengeGame, ContractChoice, MiniBridgeRequest, MiniBridgeState, Practice, Seat, Strain } from '../types';
 import { LevelPicker } from './LevelPicker';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
 import { PlayHand } from './PlayHand';
@@ -20,7 +20,17 @@ const PRACTICE_LABEL: Record<Practice, string | null> = {
   noTrump: 'Øvelse: ingen fit, prøv uden trumf',
 };
 
-export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: () => void; practice?: Practice; player?: string | null }) {
+export function MiniBridgeView({
+  onBack,
+  practice = 'any',
+  player,
+  challenge,
+}: {
+  onBack: () => void;
+  practice?: Practice;
+  player?: string | null;
+  challenge?: ChallengeGame;
+}) {
   const [request, setRequest] = useState<MiniBridgeRequest | null>(null);
   const [game, setGame] = useState<MiniBridgeState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,7 +50,8 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
         const state = await postMiniBridge(next);
         const saved = { ...next, number: state.number };
         setRequest(saved);
-        saveMiniBridge(saved);
+        if (challenge) saveChallengeGame(challenge.code, challenge.number, saved);
+        else saveMiniBridge(saved);
         setGame(state);
         if (!animate) skipTo(state.tricks.reduce((n, t) => n + t.plays.length, 0));
       } catch (e) {
@@ -60,7 +71,7 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
     const key = JSON.stringify(request);
     if (savedGame.current === key) return;
     savedGame.current = key;
-    saveMiniBridgeGame(player, request).catch(() => {
+    saveMiniBridgeGame(player, request, challenge?.code).catch(() => {
       savedGame.current = null;
     });
   }, [player, game, request]);
@@ -69,10 +80,15 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
   useEffect(() => {
     if (started.current) return;
     started.current = true;
+    if (challenge) {
+      const start: MiniBridgeRequest = { level: challenge.level, number: challenge.number, contract: null, cards: [] };
+      void send(loadChallengeGame<MiniBridgeRequest>(challenge.code, challenge.number) ?? start, false);
+      return;
+    }
     const saved = loadMiniBridge();
     const resume = practice === 'any' && saved && (saved.level ?? 'easy') === loadLevel();
     void send(resume ? saved : newGameRequest(practice, loadLevel()), false);
-  }, [send, practice]);
+  }, [send, practice, challenge]);
 
   const newGame = () => void send(newGameRequest(practice, level), false);
   const replay = () => game && void send({ level, number: game.number, contract: null, cards: [] }, false);
@@ -119,12 +135,20 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
         <span className="muted">
           Spil {game.number} · {VULNERABILITY_NAME[game.vulnerability]}
         </span>
-        <button type="button" className="link" onClick={newGame} disabled={busy}>
-          Nyt spil
-        </button>
+        {!challenge && (
+          <button type="button" className="link" onClick={newGame} disabled={busy}>
+            Nyt spil
+          </button>
+        )}
       </div>
 
-      <LevelPicker level={level} onChange={changeLevel} disabled={busy} />
+      {challenge ? (
+        <p className="practice-label">
+          Udfordring {challenge.code} · spil {challenge.index} af {challenge.count}. Ingen hints.
+        </p>
+      ) : (
+        <LevelPicker level={level} onChange={changeLevel} disabled={busy} />
+      )}
       {busy && game.phase === 'play' && <p className="thinking muted small">Botterne tænker …</p>}
 
       {PRACTICE_LABEL[practice] && <p className="practice-label">{PRACTICE_LABEL[practice]}</p>}
@@ -141,7 +165,7 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
       )}
 
       {game.phase === 'chooseContract' && request && (
-        <ContractChooser game={game} onChoose={(c) => void send({ ...request, contract: c, cards: [] }, true)} busy={busy} />
+        <ContractChooser game={game} onChoose={(c) => void send({ ...request, contract: c, cards: [] }, true)} busy={busy} noTip={!!challenge} />
       )}
 
       {contract && !finished && (game.phase === 'play' || game.phase === 'done') && (
@@ -155,7 +179,7 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
           myTurn={myTurn}
           onPlay={play}
           hcpOf={(seat) => game.hcp.find((h) => h.seat === seat)?.hcp}
-          getHint={request ? () => fetchMiniBridgeHint(request) : undefined}
+          getHint={request && !challenge ? () => fetchMiniBridgeHint(request) : undefined}
           intro={
             !isNorthSouth(contract.declarer)
               ? `${SEAT_NAME[contract.declarer]} har flest point og spiller ${contractText(contract)}. ${SEAT_NAME[partnerOf(contract.declarer)]} er blind.`
@@ -171,8 +195,9 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
           tricksEastWest={game.tricksEastWest}
           score={game.scoreNorthSouth ?? 0}
           fullDeal={game.fullDeal}
-          onNew={newGame}
-          onReplay={replay}
+          onNew={challenge ? onBack : newGame}
+          onReplay={challenge ? undefined : replay}
+          newLabel={challenge ? 'Tilbage til udfordringen' : undefined}
         >
           {request && <ReviewPanel key={game.number} contract={contract} load={() => fetchMiniBridgeReview(request)} />}
           {request && (
@@ -192,7 +217,7 @@ export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: (
 
 const NO_TRICKS: never[] = [];
 
-function ContractChooser({ game, onChoose, busy }: { game: MiniBridgeState; onChoose: (c: ContractChoice) => void; busy: boolean }) {
+function ContractChooser({ game, onChoose, busy, noTip }: { game: MiniBridgeState; onChoose: (c: ContractChoice) => void; busy: boolean; noTip?: boolean }) {
   const [strain, setStrain] = useState<Strain | null>(null);
   const [isGame, setIsGame] = useState(false);
   const [showTip, setShowTip] = useState(false);
@@ -265,9 +290,11 @@ function ContractChooser({ game, onChoose, busy }: { game: MiniBridgeState; onCh
         <button type="button" className="button" disabled={!strain || busy} onClick={() => strain && onChoose({ strain, game: isGame })}>
           Spil
         </button>
-        <button type="button" className="button secondary" onClick={() => setShowTip(true)}>
-          Hvad ville træneren vælge?
-        </button>
+        {!noTip && (
+          <button type="button" className="button secondary" onClick={() => setShowTip(true)}>
+            Hvad ville træneren vælge?
+          </button>
+        )}
       </div>
       {showTip && (
         <p className="tip">

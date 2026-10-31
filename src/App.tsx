@@ -1,3 +1,4 @@
+import { ChallengeGamePage, ChallengesPage, ChallengeView } from './components/ChallengeViews';
 import { DealViewer } from './components/DealViewer';
 import { GameView } from './components/GameView';
 import { LessonList } from './components/LessonList';
@@ -29,6 +30,10 @@ export default function App() {
   else if (parts[0] === 'point') page = <DealViewer onBack={home} />;
   else if (parts[0] === 'spil') page = <GameView onBack={home} player={player.name} />;
   else if (parts[0] === 'statistik') page = <StatsView player={player} navigate={navigate} />;
+  else if (parts[0] === 'udfordring' && parts[1] && parts[2])
+    page = <ChallengeGamePage key={`${parts[1]}-${parts[2]}`} code={parts[1].toUpperCase()} index={Number(parts[2])} player={player} navigate={navigate} />;
+  else if (parts[0] === 'udfordring' && parts[1]) page = <ChallengeView key={parts[1]} code={parts[1].toUpperCase()} player={player} navigate={navigate} />;
+  else if (parts[0] === 'udfordring') page = <ChallengesPage player={player} navigate={navigate} />;
   else page = <Home player={player} navigate={navigate} />;
 
   return (
@@ -74,6 +79,10 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
         <button type="button" className="menu-item" onClick={() => navigate('/spil')}>
           <strong>Bridge mod bot</strong>
           <span>Rigtig bridge med meldinger. Du melder med en bot som makker, kan se hvad hver melding betyder, og kan spørge systemet om råd.</span>
+        </button>
+        <button type="button" className="menu-item" onClick={() => navigate('/udfordring')}>
+          <strong>Udfordr en ven</strong>
+          <span>Spil de samme spil som dine venner mod botterne, og se, hvem der klarede sig bedst.</span>
         </button>
         <button type="button" className="menu-item" onClick={() => navigate('/statistik')}>
           <strong>Statistik</strong>
