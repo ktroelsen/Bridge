@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Player> Players => Set<Player>();
     public DbSet<LessonProgress> LessonProgress => Set<LessonProgress>();
+    public DbSet<GameRecord> Games => Set<GameRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,6 +22,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(p => p.LessonId).HasMaxLength(PlayerEndpoints.MaxLessonIdLength);
             e.HasOne(p => p.Player).WithMany().HasForeignKey(p => p.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(p => new { p.PlayerId, p.LessonId }).IsUnique();
+        });
+
+        modelBuilder.Entity<GameRecord>(e =>
+        {
+            e.Property(g => g.Mode).HasMaxLength(8);
+            e.Property(g => g.Level).HasMaxLength(8);
+            e.Property(g => g.Contract).HasMaxLength(4);
+            e.Property(g => g.Declarer).HasMaxLength(8);
+            e.HasOne(g => g.Player).WithMany().HasForeignKey(g => g.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(g => new { g.PlayerId, g.FinishedAt });
         });
     }
 }

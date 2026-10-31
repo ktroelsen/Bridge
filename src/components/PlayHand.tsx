@@ -11,12 +11,15 @@ export function PlayHand({
   active,
   onPlay,
   large = false,
+  best,
 }: {
   cards: Card[];
   legal: Card[];
   active: boolean;
   onPlay: (card: Card) => void;
   large?: boolean;
+  /** Cards to highlight as the best play. */
+  best?: Card[];
 }) {
   return (
     <div className={large ? 'play-hand large' : 'play-hand'}>
@@ -30,11 +33,12 @@ export function PlayHand({
             {inSuit.length === 0 && <span className="void">—</span>}
             {inSuit.map((card) => {
               const playable = active && legal.some((l) => sameCard(l, card));
+              const isBest = best?.some((b) => sameCard(b, card));
               return (
                 <button
                   key={card.rank}
                   type="button"
-                  className={`card-chip${isRed(suit) ? ' red' : ''}${playable ? ' playable' : ''}${active && !playable ? ' dim' : ''}`}
+                  className={`card-chip${isRed(suit) ? ' red' : ''}${playable ? ' playable' : ''}${active && !playable ? ' dim' : ''}${isBest ? ' best' : ''}`}
                   disabled={!playable}
                   onClick={() => onPlay(card)}
                   aria-label={`${SUIT_NAME[suit]} ${RANK_LABEL[card.rank]}`}

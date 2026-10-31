@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LESSONS } from '../lessons/content';
 import type { Lesson, Question, Visual } from '../lessons/types';
+import type { QuizKind } from '../types';
+import { BidQuestionView } from './BidQuestionView';
+import { PlayQuestionView } from './PlayQuestionView';
 import type { PlayerState } from '../player';
 import { LessonVisual } from './LessonVisual';
 import { QuestionView } from './QuestionView';
@@ -8,13 +11,33 @@ import { Rich } from './Rich';
 
 type Screen =
   | { kind: 'text'; title: string; body: string[]; visual?: Visual }
-  | { kind: 'question'; question: Question; title?: string; intro?: string; index?: number; count?: number };
+  | { kind: 'question'; question: Question; title?: string; intro?: string; index?: number; count?: number }
+  | { kind: 'bidding'; quiz: QuizKind; title: string; intro: string; index: number; count: number }
+  | { kind: 'play'; stage: 'early' | 'middle' | 'defend'; title: string; intro: string; index: number; count: number };
 
 /** Flattens a lesson into screens; drill questions are made fresh each time the lesson starts. */
 function screensOf(lesson: Lesson): Screen[] {
   return lesson.steps.flatMap((step): Screen[] => {
     if (step.type === 'text') return [{ kind: 'text', title: step.title, body: step.body, visual: step.visual }];
     if (step.type === 'question') return [{ kind: 'question', question: step.question }];
+    if (step.type === 'play')
+      return Array.from({ length: step.count }, (_, i) => ({
+        kind: 'play' as const,
+        stage: step.stage,
+        title: step.title,
+        intro: step.intro,
+        index: i + 1,
+        count: step.count,
+      }));
+    if (step.type === 'bidding')
+      return Array.from({ length: step.count }, (_, i) => ({
+        kind: 'bidding' as const,
+        quiz: step.quiz,
+        title: step.title,
+        intro: step.intro,
+        index: i + 1,
+        count: step.count,
+      }));
     return Array.from({ length: step.count }, (_, i) => ({
       kind: 'question' as const,
       question: step.generate(),
@@ -49,6 +72,12 @@ export function LessonView({ lesson, player, navigate }: { lesson: Lesson; playe
     setAnswered(false);
     setRight(0);
     setAsked(0);
+  };
+
+  const answer = (ok: boolean) => {
+    setAnswered(true);
+    setAsked((n) => n + 1);
+    if (ok) setRight((n) => n + 1);
   };
 
   const next = () => {
@@ -92,6 +121,40 @@ export function LessonView({ lesson, player, navigate }: { lesson: Lesson; playe
         </div>
       )}
 
+      {!done && screen.kind === 'play' && (
+        <div>
+          <h2>
+            {screen.title} <span className="muted small">{screen.index} af {screen.count}</span>
+          </h2>
+          {screen.index === 1 && <p className="lead">{screen.intro}</p>}
+          <PlayQuestionView key={at} stage={screen.stage} answered={answered} onAnswer={answer} />
+          {answered && (
+            <div className="controls">
+              <button type="button" className="button" onClick={next} autoFocus>
+                Næste
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!done && screen.kind === 'bidding' && (
+        <div>
+          <h2>
+            {screen.title} <span className="muted small">{screen.index} af {screen.count}</span>
+          </h2>
+          {screen.index === 1 && <p className="lead">{screen.intro}</p>}
+          <BidQuestionView key={at} quiz={screen.quiz} answered={answered} onAnswer={answer} />
+          {answered && (
+            <div className="controls">
+              <button type="button" className="button" onClick={next} autoFocus>
+                Næste
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {!done && screen.kind === 'question' && (
         <div>
           {screen.title && (
@@ -104,11 +167,7 @@ export function LessonView({ lesson, player, navigate }: { lesson: Lesson; playe
             key={at}
             question={screen.question}
             answered={answered}
-            onAnswer={(ok) => {
-              setAnswered(true);
-              setAsked((n) => n + 1);
-              if (ok) setRight((n) => n + 1);
-            }}
+            onAnswer={answer}
           />
           {answered && (
             <div className="controls">
@@ -131,8 +190,8 @@ export function LessonView({ lesson, player, navigate }: { lesson: Lesson; playe
           {lesson.practice && (
             <div className="tip">
               <p>{lesson.practice.text}</p>
-              <button type="button" className="button" onClick={() => navigate(`/minibridge?ov=${lesson.practice!.kind}`)}>
-                Øv i mini-bridge
+              <button type="button" className="button" onClick={() => navigate(lesson.practice!.path)}>
+                {lesson.practice.button}
               </button>
             </div>
           )}

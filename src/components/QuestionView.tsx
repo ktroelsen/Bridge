@@ -63,13 +63,14 @@ export function QuestionView({ question, onAnswer, answered }: { question: Quest
                 {cards.map((card) => {
                   const chosen = given && 'card' in given && sameCard(given.card, card);
                   const ok = a.correct.some((c) => sameCard(c, card));
-                  const state = !answered ? ' playable' : ok ? ' correct' : chosen ? ' wrong' : ' dim';
+                  const allowed = !a.legal || a.legal.some((c) => sameCard(c, card));
+                  const state = !answered ? (allowed ? ' playable' : ' dim') : ok ? ' correct' : chosen ? ' wrong' : ' dim';
                   return (
                     <button
                       key={card.rank}
                       type="button"
                       className={`card-chip${isRed(suit) ? ' red' : ''}${state}`}
-                      disabled={answered}
+                      disabled={answered || !allowed}
                       onClick={() => answer({ card })}
                       aria-label={`${SUIT_NAME[suit]} ${RANK_LABEL[card.rank]}`}
                     >

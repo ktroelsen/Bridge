@@ -26,7 +26,7 @@ export interface DealInfo {
 }
 
 export type Strain = Suit | 'noTrump';
-export type GamePhase = 'redeal' | 'chooseContract' | 'play' | 'done';
+export type GamePhase = 'redeal' | 'chooseContract' | 'bidding' | 'passedOut' | 'play' | 'done';
 
 export interface ContractChoice {
   strain: Strain;
@@ -35,7 +35,10 @@ export interface ContractChoice {
 
 export type Practice = 'any' | 'declare' | 'defend' | 'trumpFit' | 'noTrump';
 
+export type BotLevel = 'easy' | 'medium' | 'hard';
+
 export interface MiniBridgeRequest {
+  level?: BotLevel;
   number: number | null;
   contract: ContractChoice | null;
   cards: Card[];
@@ -58,6 +61,7 @@ export interface Contract {
   level: number;
   strain: Strain;
   declarer: Seat;
+  penalty?: 'none' | 'doubled' | 'redoubled';
 }
 
 export interface MiniBridgeState {
@@ -78,4 +82,124 @@ export interface MiniBridgeState {
   tricksEastWest: number;
   scoreNorthSouth: number | null;
   fullDeal: DealInfo | null;
+}
+
+export interface CallInfo {
+  seat: Seat;
+  /** "1H", "3N", "P", "X", "XX" */
+  call: string;
+  explanation: string;
+  /** For the player's own calls: what the system would have bid, when different. */
+  systemCall: string | null;
+  systemExplanation: string | null;
+}
+
+export interface GameRequest {
+  level?: BotLevel;
+  number: number | null;
+  calls: string[];
+  cards: Card[];
+}
+
+export interface GameState {
+  number: number;
+  board: number;
+  dealer: Seat;
+  vulnerability: Vulnerability;
+  phase: GamePhase;
+  southHcp: number;
+  auction: CallInfo[];
+  legalCalls: string[];
+  hint: { call: string; explanation: string } | null;
+  contract: Contract | null;
+  dummy: Seat | null;
+  hands: { seat: Seat; cards: Card[] }[];
+  tricks: Trick[];
+  toPlay: Seat | null;
+  legalCards: Card[];
+  tricksNorthSouth: number;
+  tricksEastWest: number;
+  scoreNorthSouth: number | null;
+  fullDeal: DealInfo | null;
+}
+
+export type QuizKind = 'opening' | 'response' | 'ntResponse' | 'rebid' | 'ntOpener' | 'overcall' | 'advance';
+
+export interface BiddingQuestion {
+  number: number;
+  dealer: Seat;
+  auction: { seat: Seat; call: string; explanation: string }[];
+  hand: Card[];
+  hcp: number;
+  legalCalls: string[];
+  answer: { call: string; explanation: string };
+}
+
+export interface PlayHint {
+  cards: Card[];
+  /** Tricks the player's side takes in total with perfect play from here. */
+  sideTricks: number;
+}
+
+export interface Mistake {
+  trick: number;
+  seat: Seat;
+  by: 'you' | 'partner' | 'opponents';
+  card: Card;
+  cost: number;
+  better: Card[];
+}
+
+export interface Review {
+  declarerTricksPerfect: number;
+  declarerTricks: number;
+  complete: boolean;
+  mistakes: Mistake[];
+}
+
+export interface PlayQuestion {
+  number: number;
+  contract: Contract;
+  toPlay: Seat;
+  /** Tricks played so far. */
+  trick: number;
+  tricksNorthSouth: number;
+  tricksEastWest: number;
+  hands: { seat: Seat; cards: Card[] }[];
+  legalCards: Card[];
+  best: Card[];
+  bestTricks: number;
+  values: { card: Card; tricks: number }[];
+}
+
+export interface GameRecord {
+  id: number;
+  mode: 'mini' | 'full';
+  number: number;
+  level: BotLevel;
+  /** Like "4S"; empty when passed out. */
+  contract: string;
+  declarer: Seat | '';
+  ourContract: boolean;
+  declarerTricks: number;
+  made: boolean;
+  scoreNorthSouth: number;
+  finishedAt: string;
+}
+
+export interface StatsGroup {
+  level: BotLevel;
+  games: number;
+  declared: number;
+  made: number;
+  defended: number;
+  beaten: number;
+  totalScore: number;
+}
+
+export interface Stats {
+  games: number;
+  passedOut: number;
+  byLevel: StatsGroup[];
+  recent: GameRecord[];
 }

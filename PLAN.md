@@ -111,6 +111,13 @@ Bridgeforbund underviser i:
 
 Fordi systemet er data, kan det udvides eller skiftes senere uden at røre motoren.
 
+**Sådan blev det lavet (fase 2):** Reglerne ligger i `server/Bridge.Engine/Bidding/BeginnerSystem.cs`
+som en typet liste i C# frem for JSON, så compileren fanger fejl. Hver regel har situation,
+betingelse, melding, hvad meldingen viser (`Shows`: HP-interval, længder, jævn) og et navn.
+Forklaringerne laves ud fra `Shows`. Når ingen regel dækker situationen, placerer botten
+kontrakten ud fra makkers viste hånd (udgang med 25+ HP tilsammen, invitation med 23–24).
+Blackwood og slemmeldinger er endnu ikke med.
+
 ### 4.2 Kortspil: heuristik + double dummy
 
 Det sker i tre trin efter niveau:
@@ -140,6 +147,15 @@ findes en x86-udgave af DLL'en, og at den kan loades på Simply. Planen er derfo
 
 Uanset valget kan der sættes en tidsgrænse pr. træk eller skrues ned for antallet af
 simulationer, hvis ydelsen bliver et problem.
+
+**Beslutning (fase 4):** Løseren er skrevet i ren C# (`Bridge.Engine/Analysis/DoubleDummy.cs`).
+`ddsWrapper` kræver en Windows-DLL, så den kan ikke køre i CI-testene (Linux), og det er
+usikkert, om den virker på Simplys 32-bit-server. Løseren bruger alfa-beta med "kan NS tage
+mindst n stik?", lige store kort søges én gang, sikre stik som grænse og partition search
+(cachen gemmer, hvilke topkort et resultat afhænger af). Et fuldt spil løses på 0,1–2 sekunder,
+og en hel gennemgang af et spil (alle 52 stillinger) tager typisk under 1 sekund, fordi
+cachen deles mellem stillingerne. Optimal kontrakt (alle 20 kombinationer af trumf og
+spilfører) er endnu ikke med.
 
 **Meldebot:** Der findes ingen NuGet-pakke til meldinger. EPBot (motoren bag programmet BBA)
 er en gratis .NET-DLL, men den er bygget til .NET Framework 4.8.1, har sine egne systemer og

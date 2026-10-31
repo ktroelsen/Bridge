@@ -1,4 +1,4 @@
-import type { DealInfo, MiniBridgeRequest, MiniBridgeState } from './types';
+import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, PlayQuestion, QuizKind, Review, Stats, Strain } from './types';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -37,3 +37,31 @@ export const saveLessonResult = (name: string, lessonId: string, score: number) 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ score }),
   });
+
+/** Replays a full game (bidding and play) on the server; the bots act up to the player's next turn. */
+export const postGame = (request: GameRequest) => post<GameState>('/api/game', request);
+
+/** A fresh "what do you bid?" question, answered by the bidding system. */
+export const fetchBiddingQuestion = (kind: QuizKind) => call<BiddingQuestion>(`/api/quiz/bidding?kind=${kind}`);
+
+/** The best cards for the player right now (double dummy: all cards open). */
+export const fetchGameHint = (request: GameRequest) => post<PlayHint>('/api/game/hint', request);
+export const fetchMiniBridgeHint = (request: MiniBridgeRequest) => post<PlayHint>('/api/minibridge/hint', request);
+
+/** The double dummy review of a finished deal. */
+export const fetchGameReview = (request: GameRequest) => post<Review>('/api/game/review', request);
+export const fetchMiniBridgeReview = (request: MiniBridgeRequest) => post<Review>('/api/minibridge/review', request);
+
+/** A declarer play problem with all four hands open, solved double dummy. */
+export const fetchPlayQuestion = (stage: 'early' | 'middle' | 'defend') => call<PlayQuestion>(`/api/quiz/play?stage=${stage}`);
+
+/** One strain of the double dummy table after the deal: tricks for declarer North, East, South, West (-1: unknown). */
+export const fetchGameTable = (request: GameRequest, strain: Strain) =>
+  post<{ strain: Strain; tricks: number[] }>(`/api/game/table?strain=${strain}`, request);
+export const fetchMiniBridgeTable = (request: MiniBridgeRequest, strain: Strain) =>
+  post<{ strain: Strain; tricks: number[] }>(`/api/minibridge/table?strain=${strain}`, request);
+
+/** Saves a finished game for the player; the server replays it and works out the result itself. */
+export const saveMiniBridgeGame = (name: string, request: MiniBridgeRequest) => post<unknown>(`${playerUrl(name)}/games/mini`, request);
+export const saveFullGame = (name: string, request: GameRequest) => post<unknown>(`${playerUrl(name)}/games/full`, request);
+export const fetchStats = (name: string) => call<Stats>(`${playerUrl(name)}/stats`);
