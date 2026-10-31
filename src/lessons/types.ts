@@ -6,7 +6,10 @@ export type Visual =
   | { type: 'twoHands'; north: Card[]; south: Card[] }
   | { type: 'trick'; plays: PlayedCard[]; trump: Suit | null; noTrumpLabel?: boolean }
   | { type: 'hcpTable'; hcp: Record<Seat, number>; dealer: Seat }
-  | { type: 'contract'; level: number; strain: Strain };
+  | { type: 'contract'; level: number; strain: Strain }
+  /** An auction so far, e.g. dealer South and ["1H", "P", "1S", "P"]; "?" marks South's turn. */
+  | { type: 'auction'; dealer: Seat; calls: string[] }
+  | { type: 'auctionAndHand'; dealer: Seat; calls: string[]; cards: Card[] };
 
 export type Answer =
   /** Buttons; any of the correct indices counts as right. */

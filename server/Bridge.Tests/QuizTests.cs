@@ -11,6 +11,10 @@ public class QuizTests(TestFactory factory) : IClassFixture<TestFactory>
     [InlineData(QuizKind.Opening)]
     [InlineData(QuizKind.Response)]
     [InlineData(QuizKind.NtResponse)]
+    [InlineData(QuizKind.Rebid)]
+    [InlineData(QuizKind.NtOpener)]
+    [InlineData(QuizKind.Overcall)]
+    [InlineData(QuizKind.Advance)]
     public void Questions_are_answered_by_the_system_and_vary(QuizKind kind)
     {
         var random = new Random(7);
@@ -21,14 +25,17 @@ public class QuizTests(TestFactory factory) : IClassFixture<TestFactory>
             Assert.Contains(q.Answer.Call, q.Legal);
             Assert.Equal(q.Answer.Call, Bidder.Choose(q.Dealer, [.. q.Before.Select(c => new AuctionCall(c.Seat, c.Call))], Seat.South, q.Hand).Call);
             if (kind == QuizKind.Opening) Assert.Empty(q.Before);
-            else
+            if (kind is QuizKind.Response or QuizKind.NtResponse)
             {
                 Assert.Equal(Call.Pass, q.Before[1].Call);
                 Assert.Equal(kind == QuizKind.NtResponse, q.Before[0].Call == Call.Parse("1N"));
             }
+            // South's own earlier calls are the system's, too.
+            Assert.All(q.Before.Where(c => c.Seat == Seat.South), c => Assert.Equal(Seat.South, c.Seat));
+            if (kind is QuizKind.Rebid or QuizKind.NtOpener) Assert.Equal(Seat.South, q.Before[0].Seat);
             answers.Add(q.Answer.Call.ToString());
         }
-        Assert.True(answers.Count >= 4, $"Too few different answers: {string.Join(", ", answers)}");
+        Assert.True(answers.Count >= (kind == QuizKind.NtOpener ? 3 : 4), $"Too few different answers: {string.Join(", ", answers)}");
     }
 
     [Fact]

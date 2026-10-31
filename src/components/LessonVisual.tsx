@@ -1,6 +1,7 @@
 import { cardLabel, isRed, SEAT_NAME, STRAIN_LABEL, SUIT_NAME, SUIT_SYMBOL } from '../cards';
 import type { Visual } from '../lessons/types';
-import type { Seat } from '../types';
+import type { CallInfo, Seat } from '../types';
+import { AuctionTable } from './AuctionTable';
 import { PlayHand } from './PlayHand';
 
 const noop = () => {};
@@ -69,6 +70,21 @@ export function LessonVisual({ visual }: { visual: Visual }) {
           </div>
         </div>
       );
+    case 'auction':
+    case 'auctionAndHand':
+      return (
+        <div className="visual">
+          <AuctionTable dealer={visual.dealer} calls={auctionCalls(visual.dealer, visual.calls)} selected={null} onSelect={noop} waiting />
+          {visual.type === 'auctionAndHand' && (
+            <>
+              <div className="seat-label">
+                <strong>Syd (dig)</strong>
+              </div>
+              <PlayHand cards={visual.cards} legal={[]} active={false} onPlay={noop} />
+            </>
+          )}
+        </div>
+      );
     case 'contract':
       return (
         <div className="visual center">
@@ -79,4 +95,11 @@ export function LessonVisual({ visual }: { visual: Visual }) {
         </div>
       );
   }
+}
+
+const ORDER: Seat[] = ['north', 'east', 'south', 'west'];
+
+function auctionCalls(dealer: Seat, calls: string[]): CallInfo[] {
+  const start = ORDER.indexOf(dealer);
+  return calls.map((call, i) => ({ seat: ORDER[(start + i) % 4], call, explanation: '', systemCall: null, systemExplanation: null }));
 }

@@ -119,7 +119,7 @@ export interface GameState {
   fullDeal: DealInfo | null;
 }
 
-export type QuizKind = 'opening' | 'response' | 'ntResponse';
+export type QuizKind = 'opening' | 'response' | 'ntResponse' | 'rebid' | 'ntOpener' | 'overcall' | 'advance';
 
 export interface BiddingQuestion {
   number: number;

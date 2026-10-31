@@ -164,7 +164,7 @@ public static class BeginnerSystem
         bool Raised(BidContext c, int level) => SuitOpening(c) && Resp(c) == Call.Bid(level, Own(c).ToStrain());
         yield return new("reb-raise2-game", S, c => IsMajor(Own(c)) ? Call.Bid(4, Own(c)) : C("3N"), _ => Shows.Hcp(19), c => Raised(c, 2), Text: _ => "Udgang");
         yield return new("reb-raise2-invite", S, c => Call.Bid(3, Own(c)), _ => Shows.Hcp(16, 18), c => Raised(c, 2) && IsMajor(Own(c)),
-            Text: _ => "Inviterer: makker melder udgang med en god støtte (8–9 HP)");
+            Text: _ => "Inviterer til udgang. Makker melder udgang med 8–9 HP");
         yield return new("reb-raise3-game", S, c => IsMajor(Own(c)) ? Call.Bid(4, Own(c)) : C("3N"), _ => Shows.Hcp(14), c => Raised(c, 3), Text: _ => "Udgang");
 
         // Partner bid a new suit at the 1-level.
@@ -289,7 +289,7 @@ public static class BeginnerSystem
             bool Best(BidContext c, Hand h) => Unbid(c).Contains(suit) && Longest(h, Unbid(c).OrderByDescending(IsMajor)) == suit;
             yield return new($"adv-x-game{suit}", A, _ => IsMajor(suit) ? Call.Bid(4, suit) : null, _ => Shows.Hcp(12).Len(suit, 4), Doubled, Best, _ => "Udgang efter makkers dobling");
             yield return new($"adv-x-jump{suit}", A, c => c.Jump(suit.ToStrain()) is { Level: <= 3 } j ? j : null, _ => Shows.Hcp(9, 11).Len(suit, 4),
-                c => Doubled(c) && !c.RightHandActed, Best, _ => "Spring: 9–11 HP");
+                c => Doubled(c) && !c.RightHandActed, Best, _ => "Spring efter makkers dobling");
             yield return new($"adv-x-{suit}", A, c => c.Cheapest(suit.ToStrain(), 3), c => c.RightHandActed ? Shows.Hcp(6, 11) : Shows.Hcp(0, 8), Doubled, Best,
                 _ => "Svar på makkers oplysningsdobling: bedste umeldte farve");
         }

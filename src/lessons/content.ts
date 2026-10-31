@@ -372,13 +372,195 @@ export const LESSONS: Lesson[] = [
     ],
     practice: { text: 'Spil bridge med meldinger og se, hvordan du og makker finder kontrakten.', path: '/spil', button: 'Spil bridge' },
   },
+  {
+    id: 'genmelding',
+    title: 'Genmelding',
+    summary: 'Åbnerens anden melding fortæller, hvor stærk hånden er, og hjælper med at finde fit.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Åbneren melder igen',
+        body: [
+          'Når du har åbnet, og makker har svaret, er din næste melding en **genmelding**. Den skal især fortælle, **hvor stærk** din hånd er:',
+          '**Minimum:** 12–15 HP. **Ekstra:** 16–18 HP. **Stærk:** 19–21 HP.',
+          'Makker kan så lægge sine point til og se, om I skal i udgang.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Når makker har støttet dig',
+        body: [
+          'Har makker støttet din farve (fx 1♥ – 2♥), har I fundet en fit. Nu handler det kun om niveauet:',
+          '**12–15 HP:** pas. **16–18 HP:** meld 3♥, en invitation, som makker accepterer med en god støtte. **19 HP eller mere:** meld udgang, 4♥.',
+        ],
+        visual: { type: 'auction', dealer: 'south', calls: ['1H', 'P', '2H', 'P'] },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du åbnede 1♥, og makker støttede med 2♥. Hvad melder du nu?',
+          visual: { type: 'auctionAndHand', dealer: 'south', calls: ['1H', 'P', '2H', 'P'], cards: parseHand('A3.AQ874.KQ7.K92') },
+          answer: { type: 'options', options: ['Pas', '3♥', '4♥', '2UT'], correct: [1] },
+          explain: 'Du har 18 HP, altså lidt ekstra. 3♥ inviterer: makker melder 4♥ med 8–9 HP og passer med 6–7.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Når makker har meldt en ny farve',
+        body: [
+          'En ny farve fra makker betyder, at **du skal melde igen**. Vælg det første, der passer:',
+          '**Fire kort i makkers farve:** støt den: 2 med minimum, 3 med ekstra, 4 med en stærk hånd.',
+          '**Jævn hånd:** 1UT med 12–14 HP, 2UT med 18–19 HP.',
+          '**En ny farve med fire kort:** på 1-trinnet (fx 1♣ – 1♥ – 1♠), eller en lavere farve på 2-trinnet (fx 1♥ – 1♠ – 2♦).',
+          '**Seks kort i din egen farve:** meld den igen: 2 med minimum, 3 med ekstra.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du åbnede 1♥, og makker svarede 1♠. Hvad melder du nu?',
+          visual: { type: 'auctionAndHand', dealer: 'south', calls: ['1H', 'P', '1S', 'P'], cards: parseHand('A3.AQ874.K87.932') },
+          answer: { type: 'options', options: ['Pas', '1UT', '2♥', '2♠'], correct: [1] },
+          explain: 'Du har 13 HP og jævn fordeling (5-3-3-2), ingen støtte til spar og kun fem hjerter. 1UT viser en jævn minimumshånd.',
+        },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du åbnede 1♥, og makker svarede 1♠. Hvad melder du nu?',
+          visual: { type: 'auctionAndHand', dealer: 'south', calls: ['1H', 'P', '1S', 'P'], cards: parseHand('3.AQ874.K873.K92') },
+          answer: { type: 'options', options: ['1UT', '2♦', '2♥', '2♠'], correct: [1] },
+          explain: 'Hånden er ikke jævn (single spar), og du har fire ruder. 2♦ viser en ny farve, lavere end hjerter, så makker kan vælge mellem dine farver på 2-trinnet.',
+        },
+      },
+      { type: 'bidding', title: 'Din genmelding', intro: 'Du åbnede, og makker svarede. Vælg din næste melding.', count: 10, quiz: 'rebid' },
+    ],
+    practice: { text: 'Spil bridge med meldinger og læg mærke til, hvad din genmelding fortæller makker.', path: '/spil', button: 'Spil bridge' },
+  },
+  {
+    id: '1ut-systemet',
+    title: '1UT-systemet',
+    summary: 'Overføringer og Stayman: sådan finder I en fit i højfarve, når makker har åbnet 1UT.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Find fit i højfarve',
+        body: [
+          'Når makker åbner **1UT**, ved du næsten alt: 15–17 HP og jævn fordeling, så mindst to kort i hver farve.',
+          'Har du selv en **højfarve med fem kort**, eller **fire kort** i en højfarve, vil du gerne finde ud af, om I har 8 kort tilsammen. Til det er der to særlige meldinger.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Overføring',
+        body: [
+          'Med **fem kort eller flere i en højfarve** melder du farven **lige under**: **2♦ viser hjerter**, og **2♥ viser spar**. Makker skal så melde din farve: 2♥ eller 2♠.',
+          'Det bruges med alle styrker, også med 0 HP. Bagefter bestemmer du:',
+          '**0–7 HP:** pas. **8–9 HP:** 2UT med fem kort, 3 i farven med seks. **10 HP eller mere:** 3UT med fem kort (makker vælger), 4 i farven med seks.',
+          'Fordelen er, at det er den stærke hånd (1UT-åbneren), der bliver spilfører, så modspillerne ikke kan se den.',
+        ],
+        visual: { type: 'auction', dealer: 'north', calls: ['1N', 'P', '2D', 'P', '2H'] },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Makker åbner 1UT, og Øst passer. Hvad melder du?',
+          visual: { type: 'auctionAndHand', dealer: 'north', calls: ['1N', 'P'], cards: parseHand('K9843.Q73.83.J92') },
+          answer: { type: 'options', options: ['Pas', '2♣', '2♥', '2♠'], correct: [2] },
+          explain: 'Du har fem spar. 2♥ er en overføring til spar: makker melder 2♠. Med 6 HP passer du bagefter og spiller 2♠.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Stayman',
+        body: [
+          'Med **fire kort i en højfarve** og **8 HP eller mere** melder du **2♣** (Stayman). Den spørger: har du fire kort i en højfarve?',
+          'Makker svarer **2♥** med fire hjerter, **2♠** med fire spar (og ikke fire hjerter) og **2♦** uden en højfarve med fire kort.',
+          'Har I fundet en fit: 3 i farven med 8–9 HP, 4 med 10 eller mere. Uden fit: 2UT med 8–9 HP, 3UT med 10 eller mere.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Makker åbner 1UT, og Øst passer. Hvad melder du?',
+          visual: { type: 'auctionAndHand', dealer: 'north', calls: ['1N', 'P'], cards: parseHand('K984.Q73.A83.J92') },
+          answer: { type: 'options', options: ['2♣', '2♦', '2UT', '3UT'], correct: [0] },
+          explain: 'Du har 10 HP og fire spar. 2♣ (Stayman) spørger efter en 4-korts højfarve. Svarer makker 2♠, melder du 4♠, ellers 3UT.',
+        },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du åbnede 1UT, og makker meldte 2♣ (Stayman). Hvad svarer du?',
+          visual: { type: 'auctionAndHand', dealer: 'south', calls: ['1N', 'P', '2C', 'P'], cards: parseHand('AQ3.KJ84.Q87.K92') },
+          answer: { type: 'options', options: ['2♦', '2♥', '2♠', '2UT'], correct: [1] },
+          explain: 'Du har fire hjerter, så du svarer 2♥.',
+        },
+      },
+      { type: 'bidding', title: 'Makker åbner 1UT', intro: 'Brug overføring, Stayman eller uden trumf.', count: 8, quiz: 'ntResponse' },
+      { type: 'bidding', title: 'Du åbnede 1UT', intro: 'Makker har meldt Stayman eller en overføring. Hvad svarer du?', count: 5, quiz: 'ntOpener' },
+    ],
+    practice: { text: 'Spil bridge med meldinger. Når makker åbner 1UT, kan du bruge det, du lige har lært.', path: '/spil', button: 'Spil bridge' },
+  },
+  {
+    id: 'konkurrence',
+    title: 'Konkurrencemeldinger',
+    summary: 'Når modparten åbner: indmelding, oplysningsdobling og hvordan du svarer makker.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Modparten har åbnet',
+        body: [
+          'Også når modparten åbner, kan I tit vinde kontrakten eller presse dem op. Du har tre muligheder, når du står med en god hånd:',
+          '**Indmelding:** en farve med **fem gode kort**. På 1-trinnet 8–16 HP, på 2-trinnet 11–16 HP.',
+          '**1UT-indmelding:** 15–18 HP og jævn fordeling.',
+          '**Oplysningsdobling (Dobl):** 12 HP eller mere, **højst to kort i deres farve** og mindst tre kort i hver af de andre. Den beder makker om at melde sin bedste farve.',
+        ],
+        visual: { type: 'auction', dealer: 'east', calls: ['1D'] },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Øst åbner 1♦. Hvad melder du?',
+          visual: { type: 'auctionAndHand', dealer: 'east', calls: ['1D'], cards: parseHand('KQJ84.73.K83.Q92') },
+          answer: { type: 'options', options: ['Pas', '1♠', '1UT', 'Dobl'], correct: [1] },
+          explain: 'Du har 11 HP og en god spar med fem kort. Det er en indmelding på 1-trinnet: 1♠.',
+        },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Øst åbner 1♦. Hvad melder du?',
+          visual: { type: 'auctionAndHand', dealer: 'east', calls: ['1D'], cards: parseHand('KQ84.AJ73.3.Q982') },
+          answer: { type: 'options', options: ['Pas', '1♥', '1♠', 'Dobl'], correct: [3] },
+          explain: 'Du har 12 HP, kun én ruder og mindst tre kort i alle andre farver. Det er en oplysningsdobling: makker skal melde sin bedste farve.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Når makker har doblet',
+        body: [
+          'Makkers oplysningsdobling beder dig melde. **Du skal melde, også med 0 HP**, medmindre modparten melder imellem.',
+          'Meld din bedste farve af dem, modparten ikke har meldt. Højfarver først. **0–8 HP:** så billigt som muligt. **9–11 HP:** et trin højere (spring). **12 HP eller mere:** meld udgang.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Når makker har meldt ind',
+        body: [
+          'Har makker meldt ind med en farve, har makker fem kort. Med **tre kort i farven** har I en fit, og du støtter:',
+          '**7–10 HP:** meld farven et trin højere. **11–12 HP:** spring (invitation). **13 HP eller mere:** udgang i højfarve.',
+        ],
+      },
+      { type: 'bidding', title: 'Modparten har åbnet', intro: 'Øst har åbnet. Meld ind, dobl eller pas.', count: 8, quiz: 'overcall' },
+      { type: 'bidding', title: 'Makker har meldt', intro: 'Vest åbnede, makker meldte ind eller doblede, og Øst passede.', count: 6, quiz: 'advance' },
+    ],
+    practice: { text: 'Spil bridge med meldinger. Når modstanderne åbner, kan du nu blande dig.', path: '/spil', button: 'Spil bridge' },
+  },
 ];
 
 /** Topics that come later (shown as locked in the list). */
 export const COMING_LESSONS = [
-  { title: 'Genmelding', summary: 'Åbnerens anden melding: at finde fit og niveau.' },
-  { title: '1UT-systemet', summary: 'Stayman og overføringer.' },
-  { title: 'Konkurrencemeldinger', summary: 'Indmelding og oplysningsdobling.' },
   { title: 'Spilføring', summary: 'Tæl vindere og tabere, træk trumf og lav en plan.' },
   { title: 'Modspil', summary: 'Udspil, signaler og samarbejde med makker.' },
   { title: 'Slem', summary: 'Når I kan tage 12 eller 13 stik.' },
