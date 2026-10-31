@@ -1,4 +1,4 @@
-import type { Card, PlayedCard, Practice, Seat, Strain, Suit } from '../types';
+import type { Card, PlayedCard, QuizKind, Seat, Strain, Suit } from '../types';
 
 /** Pictures that go with a text or a question. */
 export type Visual =
@@ -27,7 +27,9 @@ export interface Question {
 export type Step =
   | { type: 'text'; title: string; body: string[]; visual?: Visual }
   | { type: 'question'; question: Question }
-  | { type: 'drill'; title: string; intro: string; count: number; generate: () => Question };
+  | { type: 'drill'; title: string; intro: string; count: number; generate: () => Question }
+  /** "What do you bid?" questions from the server, answered by the bidding system. */
+  | { type: 'bidding'; title: string; intro: string; count: number; quiz: QuizKind };
 
 
 export interface Lesson {
@@ -35,6 +37,6 @@ export interface Lesson {
   title: string;
   summary: string;
   steps: Step[];
-  /** Suggested mini-bridge practice after the lesson. */
-  practice?: { text: string; kind: Practice };
+  /** Suggested practice after the lesson: a text and the page to go to (e.g. "/minibridge?ov=declare"). */
+  practice?: { text: string; path: string; button: string };
 }

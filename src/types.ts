@@ -118,3 +118,15 @@ export interface GameState {
   scoreNorthSouth: number | null;
   fullDeal: DealInfo | null;
 }
+
+export type QuizKind = 'opening' | 'response' | 'ntResponse';
+
+export interface BiddingQuestion {
+  number: number;
+  dealer: Seat;
+  auction: { seat: Seat; call: string; explanation: string }[];
+  hand: Card[];
+  hcp: number;
+  legalCalls: string[];
+  answer: { call: string; explanation: string };
+}

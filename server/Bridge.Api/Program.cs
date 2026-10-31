@@ -41,6 +41,7 @@ app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapDealEndpoints();
 app.MapMiniBridgeEndpoints();
 app.MapGameEndpoints();
+app.MapQuizEndpoints();
 app.MapPlayerEndpoints();
 
 // SPA fallback after the API, so it never shadows it.

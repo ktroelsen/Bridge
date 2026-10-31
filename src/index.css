@@ -387,6 +387,8 @@ body {
 .lesson-done .tip p { margin: 0 0 8px; }
 
 /* Bidding */
+.auction-details { margin-top: 10px; border-top: 1px solid var(--paper-edge); padding-top: 6px; }
+.auction-details summary { cursor: pointer; font-weight: 600; color: var(--felt); padding: 4px 0; }
 .auction { width: 100%; max-width: 420px; margin: 4px auto 8px; border-collapse: collapse; table-layout: fixed; }
 .auction th { font-size: 0.8rem; color: var(--muted); font-weight: 600; padding: 2px 0 4px; border-bottom: 1px solid var(--paper-edge); }
 .auction th.me { color: var(--felt); }

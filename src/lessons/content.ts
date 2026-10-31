@@ -120,7 +120,7 @@ export const LESSONS: Lesson[] = [
       { type: 'drill', title: 'Hvem vinder stikket?', intro: 'Hold øje med trumffarven.', count: 8, generate: () => drill.trickWinner(true) },
       { type: 'drill', title: 'Vind stikket', intro: 'Du sidder Syd. Vælg et kort, der vinder stikket.', count: 5, generate: drill.winTrick },
     ],
-    practice: { text: 'Spil mini-bridge, hvor I har en god trumffarve.', kind: 'trumpFit' },
+    practice: { text: 'Spil mini-bridge, hvor I har en god trumffarve.', path: '/minibridge?ov=trumpFit', button: 'Øv i mini-bridge' },
   },
   {
     id: 'point',
@@ -194,7 +194,7 @@ export const LESSONS: Lesson[] = [
       },
       { type: 'drill', title: 'Hvem spiller ud?', intro: 'Spillet går med uret: Nord, Øst, Syd, Vest.', count: 4, generate: drill.openingLeader },
     ],
-    practice: { text: 'Spil mini-bridge, hvor du er spilfører.', kind: 'declare' },
+    practice: { text: 'Spil mini-bridge, hvor du er spilfører.', path: '/minibridge?ov=declare', button: 'Øv i mini-bridge' },
   },
   {
     id: 'kontrakter',
@@ -231,16 +231,157 @@ export const LESSONS: Lesson[] = [
       },
       { type: 'drill', title: 'Hvad skal I spille?', intro: 'Tæl kortene i hver farve hos Nord og Syd tilsammen.', count: 5, generate: drill.trumpChoice },
     ],
-    practice: { text: 'Spil mini-bridge, hvor du er spilfører, og vælg selv kontrakten.', kind: 'declare' },
+    practice: { text: 'Spil mini-bridge, hvor du er spilfører, og vælg selv kontrakten.', path: '/minibridge?ov=declare', button: 'Øv i mini-bridge' },
+  },
+  {
+    id: 'aabning',
+    title: 'Åbningsmeldinger',
+    summary: 'Meldingerne er en samtale med makker. Hvornår du åbner, og hvad du åbner med.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Meldingerne er en samtale',
+        body: [
+          'Før kortene spilles, **melder** man. Du og makker fortæller hinanden om jeres hænder for at finde den rigtige kontrakt: hvilken trumf, og hvor mange stik I kan tage.',
+          'Hver melding er et tal og en farve, fx **1♥**. Den betyder: "jeg vil tage 7 stik med hjerter som trumf". Men den fortæller også makker noget om din hånd.',
+          'En melding skal være **højere end den forrige**: et højere tal, eller samme tal i en højere farve. Rækkefølgen er **♣, ♦, ♥, ♠, UT**. Vil du ikke melde, siger du **pas**.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Nord har meldt 1♥. Hvad er den laveste melding, du må melde?',
+          answer: { type: 'options', options: ['1♦', '1♥', '1♠', '2♣'], correct: [2] },
+          explain: '1♠ er højere end 1♥, fordi spar kommer efter hjerter i rækkefølgen ♣, ♦, ♥, ♠, UT. 1♦ er lavere, og 1♥ er det samme.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Hvornår åbner man?',
+        body: [
+          'Den første, der melder noget andet end pas, **åbner** meldingerne.',
+          'Du åbner, når du har **12 HP eller mere**. Med færre point siger du pas og venter på at høre, hvad de andre melder.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Hvad åbner man med?',
+        body: [
+          'Se på hånden i denne rækkefølge:',
+          '**1. 15–17 HP og jævn fordeling:** åbn **1UT**.',
+          '**2. Fem kort eller flere i ♥ eller ♠:** åbn **1♥ eller 1♠**. Med fem af hver vælger du 1♠.',
+          '**3. Ellers:** åbn i den længste af **♣ og ♦**. Med tre af hver åbner du 1♣, med fire af hver 1♦.',
+          'Der er også et par sjældnere åbninger: **2UT** med 20–21 HP og jævn fordeling, **2♣** med 22 HP eller mere (siger intet om klør) og **3 i en farve** med en svag hånd (6–10 HP) og 7 kort i farven. Det sidste kaldes en **spærremelding**.',
+          'Hånden her har 15 HP og jævn fordeling, så den åbner 1UT.',
+        ],
+        visual: { type: 'hand', cards: parseHand('AQ3.KJ4.Q873.K92') },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du er giver. Hvad åbner du med?',
+          visual: { type: 'hand', cards: parseHand('A3.KQ874.Q87.K92') },
+          answer: { type: 'options', options: ['Pas', '1♦', '1♥', '1UT'], correct: [2] },
+          explain: 'Hånden har 14 HP. Det er ikke nok til 1UT (15–17), men du har fem hjerter, så du åbner 1♥.',
+        },
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du er giver. Hvad åbner du med?',
+          visual: { type: 'hand', cards: parseHand('AQ84.KJ74.Q83.92') },
+          answer: { type: 'options', options: ['1♣', '1♦', '1♥', '1♠'], correct: [1] },
+          explain: 'Hånden har 12 HP, men ingen højfarve med fem kort. Så åbner du i den længste lavfarve: tre ruder mod to klør giver 1♦.',
+        },
+      },
+      { type: 'bidding', title: 'Hvad åbner du?', intro: 'Vælg din åbning i meldeboksen. Der kommer nye hænder hver gang.', count: 10, quiz: 'opening' },
+    ],
+    practice: { text: 'Spil bridge med meldinger. Tryk på "Hvad siger systemet?", når du er i tvivl.', path: '/spil', button: 'Spil bridge' },
+  },
+  {
+    id: 'svar',
+    title: 'Svar på åbning',
+    summary: 'Makker har åbnet. Støt makkers farve, vis din egen eller meld uden trumf.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Makker har åbnet',
+        body: [
+          'Når makker åbner, ved du, at makker har mindst 12 HP. Har I tilsammen **25 HP**, er der som regel udgang.',
+          'Tæl dine point. Med **0–5 HP** siger du pas. Med **6 HP eller mere** svarer du, så makker kan melde igen.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Støt makkers højfarve',
+        body: [
+          'Når makker åbner 1♥ eller 1♠, har makker mindst fem kort i farven. Har du **tre kort eller flere** i den, har I en fit på mindst 8 kort. Så **støtter** du:',
+          '**6–9 HP:** meld 2 i farven (enkel støtte).',
+          '**10–12 HP:** meld 3 i farven. Det er en invitation: makker melder udgang med lidt ekstra.',
+          '**13–15 HP:** meld 4 i farven. Det er udgang.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Nord åbner 1♥, og Øst passer. Hvad melder du?',
+          visual: { type: 'hand', cards: parseHand('K84.Q73.J832.Q92') },
+          answer: { type: 'options', options: ['Pas', '1UT', '2♥', '4♥'], correct: [2] },
+          explain: 'Du har 8 HP og tre hjerter. Det er enkel støtte: 2♥.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Vis din egen farve',
+        body: [
+          'Uden støtte viser du din egen farve med **mindst fire kort**. På 1-trinnet skal du have **6 HP**, på 2-trinnet **10 HP**.',
+          'Når makker har åbnet 1♣ eller 1♦, er det vigtigt at vise en **højfarve med fire kort**. Har du fire af hver, melder du 1♥ først.',
+          'En ny farve fra dig betyder, at **makker skal melde igen**. Så får I mere at vide om hinanden.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Nord åbner 1♣, og Øst passer. Hvad melder du?',
+          visual: { type: 'hand', cards: parseHand('K984.QJ73.83.Q92') },
+          answer: { type: 'options', options: ['1♦', '1♥', '1♠', '1UT'], correct: [1] },
+          explain: 'Du har 8 HP og fire kort i begge højfarver. Med fire af hver melder du 1♥ først. Har makker fire spar, kan makker selv melde 1♠.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Svar uden trumf',
+        body: [
+          'Har du hverken støtte eller en farve, du kan vise, svarer du i uden trumf:',
+          '**6–10 HP:** 1UT.',
+          '**11–12 HP og jævn:** 2UT (invitation).',
+          '**13–15 HP og jævn:** 3UT (udgang).',
+          'Når makker åbner **1UT**, ved du, at makker har 15–17 HP og jævn fordeling. Uden en højfarve med fire kort: pas med 0–7 HP, 2UT med 8–9 og 3UT med 10–15. Med en højfarve er der særlige meldinger, som kommer i en senere lektion.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Nord åbner 1♠, og Øst passer. Hvad melder du?',
+          visual: { type: 'hand', cards: parseHand('Q8.K73.Q8732.J92') },
+          answer: { type: 'options', options: ['Pas', '1UT', '2♦', '2♠'], correct: [1] },
+          explain: 'Du har 8 HP, kun to spar og ingen farve, der kan meldes på 1-trinnet. 2♦ kræver 10 HP, så du svarer 1UT.',
+        },
+      },
+      { type: 'bidding', title: 'Hvad svarer du?', intro: 'Nord har åbnet, og Øst har passet. Vælg dit svar i meldeboksen.', count: 10, quiz: 'response' },
+    ],
+    practice: { text: 'Spil bridge med meldinger og se, hvordan du og makker finder kontrakten.', path: '/spil', button: 'Spil bridge' },
   },
 ];
 
 /** Topics that come later (shown as locked in the list). */
 export const COMING_LESSONS = [
-  { title: 'Åbningsmeldinger', summary: 'Hvornår og hvad man åbner med.' },
-  { title: 'Svar på åbning', summary: 'Støtte, ny farve og uden trumf.' },
+  { title: 'Genmelding', summary: 'Åbnerens anden melding: at finde fit og niveau.' },
+  { title: '1UT-systemet', summary: 'Stayman og overføringer.' },
+  { title: 'Konkurrencemeldinger', summary: 'Indmelding og oplysningsdobling.' },
   { title: 'Spilføring', summary: 'Tæl vindere og tabere, træk trumf og lav en plan.' },
   { title: 'Modspil', summary: 'Udspil, signaler og samarbejde med makker.' },
+  { title: 'Slem', summary: 'Når I kan tage 12 eller 13 stik.' },
 ];
 
 export const lessonById = (id: string) => LESSONS.find((l) => l.id === id);

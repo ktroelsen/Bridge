@@ -1,4 +1,4 @@
-import type { DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState } from './types';
+import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, QuizKind } from './types';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -40,3 +40,6 @@ export const saveLessonResult = (name: string, lessonId: string, score: number) 
 
 /** Replays a full game (bidding and play) on the server; the bots act up to the player's next turn. */
 export const postGame = (request: GameRequest) => post<GameState>('/api/game', request);
+
+/** A fresh "what do you bid?" question, answered by the bidding system. */
+export const fetchBiddingQuestion = (kind: QuizKind) => call<BiddingQuestion>(`/api/quiz/bidding?kind=${kind}`);

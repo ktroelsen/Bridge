@@ -97,6 +97,29 @@ export function GameView({ onBack }: { onBack: () => void }) {
   const chosen = selected !== null ? game.auction[selected] : null;
   const leader = contract ? (({ north: 'east', east: 'south', south: 'west', west: 'north' }) as const)[contract.declarer] : null;
 
+  const auctionView = (
+    <>
+      <AuctionTable dealer={game.dealer} calls={game.auction} selected={selected} onSelect={(i) => setSelected(i === selected ? null : i)} waiting={bidding} />
+      {chosen ? (
+        <div className={`call-info${chosen.systemCall ? ' differs' : ''}`}>
+          <p>
+            <strong>
+              {SEAT_NAME[chosen.seat]}: {callLabel(chosen.call)}.
+            </strong>{' '}
+            {chosen.explanation !== callLabel(chosen.call) && <Rich text={chosen.explanation} />}
+          </p>
+          {chosen.systemCall && (
+            <p>
+              <strong>Systemet ville have meldt {callLabel(chosen.systemCall)}:</strong> <Rich text={chosen.systemExplanation ?? ''} />
+            </p>
+          )}
+        </div>
+      ) : (
+        bidding && <p className="muted small">Tryk på en melding for at se, hvad den betyder.</p>
+      )}
+    </>
+  );
+
   return (
     <section className="panel game">
       <div className="game-bar">
@@ -113,28 +136,7 @@ export function GameView({ onBack }: { onBack: () => void }) {
 
       {error && <p className="error">{error}</p>}
 
-      {(bidding || finished || anim.shown === 0) && (
-        <>
-          <AuctionTable dealer={game.dealer} calls={game.auction} selected={selected} onSelect={(i) => setSelected(i === selected ? null : i)} waiting={bidding} />
-          {chosen ? (
-            <div className={`call-info${chosen.systemCall ? ' differs' : ''}`}>
-              <p>
-                <strong>
-                  {SEAT_NAME[chosen.seat]}: {callLabel(chosen.call)}.
-                </strong>{' '}
-                {chosen.explanation !== callLabel(chosen.call) && <Rich text={chosen.explanation} />}
-              </p>
-              {chosen.systemCall && (
-                <p>
-                  <strong>Systemet ville have meldt {callLabel(chosen.systemCall)}:</strong> <Rich text={chosen.systemExplanation ?? ''} />
-                </p>
-              )}
-            </div>
-          ) : (
-            bidding && <p className="muted small">Tryk på en melding for at se, hvad den betyder.</p>
-          )}
-        </>
-      )}
+      {(bidding || finished) && auctionView}
 
       {bidding && (
         <>
@@ -184,6 +186,10 @@ export function GameView({ onBack }: { onBack: () => void }) {
               </button>
             </div>
           )}
+          <details className="auction-details" open>
+            <summary>Meldingerne</summary>
+            {auctionView}
+          </details>
         </>
       )}
 
