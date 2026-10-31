@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchGameHint, fetchGameReview, fetchGameTable, postGame } from '../api';
+import { fetchGameHint, fetchGameReview, fetchGameTable, postGame, saveFullGame } from '../api';
 import { callLabel, isNorthSouth, SEAT_NAME, VULNERABILITY_NAME } from '../cards';
 import { loadGame, loadLevel, saveGame, saveLevel } from '../storage';
 import type { BotLevel, Card, GameRequest, GameState, Seat } from '../types';
@@ -16,7 +16,7 @@ const newGameRequest = (level: BotLevel): GameRequest => ({ level, number: null,
 const NO_TRICKS: never[] = [];
 
 /** A full game against the bots: bidding with explanations and hints, then the play. */
-export function GameView({ onBack }: { onBack: () => void }) {
+export function GameView({ onBack, player }: { onBack: () => void; player?: string | null }) {
   const [request, setRequest] = useState<GameRequest | null>(null);
   const [game, setGame] = useState<GameState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,6 +53,18 @@ export function GameView({ onBack }: { onBack: () => void }) {
     },
     [skipTo],
   );
+
+  // Finished games are saved for the player (once per game; the server ignores repeats too).
+  const savedGame = useRef<string | null>(null);
+  useEffect(() => {
+    if (!player || !game || !request || !(game.phase === 'done' || game.phase === 'passedOut')) return;
+    const key = JSON.stringify(request);
+    if (savedGame.current === key) return;
+    savedGame.current = key;
+    saveFullGame(player, request).catch(() => {
+      savedGame.current = null;
+    });
+  }, [player, game, request]);
 
   const started = useRef(false);
   useEffect(() => {

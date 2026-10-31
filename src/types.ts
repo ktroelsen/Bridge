@@ -171,3 +171,35 @@ export interface PlayQuestion {
   bestTricks: number;
   values: { card: Card; tricks: number }[];
 }
+
+export interface GameRecord {
+  id: number;
+  mode: 'mini' | 'full';
+  number: number;
+  level: BotLevel;
+  /** Like "4S"; empty when passed out. */
+  contract: string;
+  declarer: Seat | '';
+  ourContract: boolean;
+  declarerTricks: number;
+  made: boolean;
+  scoreNorthSouth: number;
+  finishedAt: string;
+}
+
+export interface StatsGroup {
+  level: BotLevel;
+  games: number;
+  declared: number;
+  made: number;
+  defended: number;
+  beaten: number;
+  totalScore: number;
+}
+
+export interface Stats {
+  games: number;
+  passedOut: number;
+  byLevel: StatsGroup[];
+  recent: GameRecord[];
+}

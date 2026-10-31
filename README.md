@@ -37,6 +37,9 @@ fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
   kort der kostede stik (dine, makkers og modstandernes). "Hvad kunne vindes?" viser stik for
   hver spilfører i hver farve med perfekt spil og den bedste kontrakt for hvert par. Begge dele bruger en double
   dummy-løser (alle kort åbne) i `Bridge.Engine/Analysis/`.
+- **Følge med i statistikken:** med et navn gemmes hvert færdigt spil (serveren genspiller det
+  og regner selv resultatet ud). Statistiksiden viser, hvor ofte du vinder dine kontrakter og
+  sætter modstandernes pr. botniveau, og dine seneste spil med "Spil igen".
 - **Tælle point:** se kortgivninger med alle fire hænder åbne.
 
 Lektioner om meldinger og fuldt spil med meldinger kommer i de næste faser.
@@ -165,6 +168,9 @@ Engangsopsætning:
 - `POST /api/game/table?strain=spades` og `POST /api/minibridge/table?strain=...` (et færdigt
   spil): stik for spilfører Nord, Øst, Syd og Vest i én farve (-1 hvis det tog for lang tid).
   Siden henter én farve ad gangen.
+- `POST /api/players/{navn}/games/mini` og `.../games/full` (et færdigt spil, samme body som
+  spillet) gemmer spillet; samme spil gemmes kun én gang. `GET /api/players/{navn}/stats` giver
+  statistik pr. botniveau og de seneste 30 spil.
 - `POST /api/players` med `{ "name": "Kasper" }` opretter eller finder en spiller (navnet er
   nøglen, uden forskel på store og små bogstaver).
 - `GET /api/players/{navn}/progress` giver den bedste score pr. lektion.

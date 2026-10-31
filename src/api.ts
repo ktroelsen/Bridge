@@ -1,4 +1,4 @@
-import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, PlayQuestion, QuizKind, Review, Strain } from './types';
+import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, PlayQuestion, QuizKind, Review, Stats, Strain } from './types';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -60,3 +60,8 @@ export const fetchGameTable = (request: GameRequest, strain: Strain) =>
   post<{ strain: Strain; tricks: number[] }>(`/api/game/table?strain=${strain}`, request);
 export const fetchMiniBridgeTable = (request: MiniBridgeRequest, strain: Strain) =>
   post<{ strain: Strain; tricks: number[] }>(`/api/minibridge/table?strain=${strain}`, request);
+
+/** Saves a finished game for the player; the server replays it and works out the result itself. */
+export const saveMiniBridgeGame = (name: string, request: MiniBridgeRequest) => post<unknown>(`${playerUrl(name)}/games/mini`, request);
+export const saveFullGame = (name: string, request: GameRequest) => post<unknown>(`${playerUrl(name)}/games/full`, request);
+export const fetchStats = (name: string) => call<Stats>(`${playerUrl(name)}/stats`);

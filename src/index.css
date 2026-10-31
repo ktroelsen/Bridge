@@ -44,6 +44,7 @@ body {
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
 }
 .panel h2 { font-size: 1.2rem; font-weight: 700; margin: 0 0 6px; }
+.panel h3 { font-size: 1.05rem; font-weight: 700; margin: 12px 0 6px; }
 .lead { margin: 0 0 12px; color: var(--muted); line-height: 1.45; }
 
 .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-bottom: 12px; }
@@ -393,6 +394,16 @@ body {
 .dd-table td.game { background: #e6f1e3; font-weight: 700; }
 .dd-table td.slam { background: #fbe8b8; font-weight: 700; }
 .dd-table td.pending { color: var(--muted); }
+
+/* Statistics */
+.stats-table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 0.9rem; }
+.stats-table th, .stats-table td { padding: 6px 4px; border-bottom: 1px solid var(--paper-edge); text-align: left; }
+.stats-table thead th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+.recent { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.recent li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; background: white; border: 1px solid var(--paper-edge); border-radius: 10px; }
+.recent li .link { align-self: flex-start; padding: 2px 0; min-height: 28px; }
+.plus { color: var(--felt); font-weight: 700; }
+.minus { color: var(--red); font-weight: 700; }
 
 /* Bot level */
 .level-picker { display: flex; align-items: center; gap: 4px; margin: 2px 0 6px; flex-wrap: wrap; }

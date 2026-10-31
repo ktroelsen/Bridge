@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchMiniBridgeHint, fetchMiniBridgeReview, fetchMiniBridgeTable, postMiniBridge } from '../api';
+import { fetchMiniBridgeHint, fetchMiniBridgeReview, fetchMiniBridgeTable, postMiniBridge, saveMiniBridgeGame } from '../api';
 import { fits, suggestContract } from '../coach';
 import { gameLevel, isNorthSouth, isRed, partnerOf, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, STRAINS, SUIT_SYMBOL, VULNERABILITY_NAME } from '../cards';
 import { loadLevel, loadMiniBridge, saveLevel, saveMiniBridge } from '../storage';
@@ -20,7 +20,7 @@ const PRACTICE_LABEL: Record<Practice, string | null> = {
   noTrump: 'Øvelse: ingen fit, prøv uden trumf',
 };
 
-export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => void; practice?: Practice }) {
+export function MiniBridgeView({ onBack, practice = 'any', player }: { onBack: () => void; practice?: Practice; player?: string | null }) {
   const [request, setRequest] = useState<MiniBridgeRequest | null>(null);
   const [game, setGame] = useState<MiniBridgeState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,6 +53,18 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
   );
 
   // Resume the saved game (once, also under StrictMode). Practice from a lesson always starts a new deal.
+  // Finished games are saved for the player (once per game; the server ignores repeats too).
+  const savedGame = useRef<string | null>(null);
+  useEffect(() => {
+    if (!player || !game || !request || !(game.phase === 'done')) return;
+    const key = JSON.stringify(request);
+    if (savedGame.current === key) return;
+    savedGame.current = key;
+    saveMiniBridgeGame(player, request).catch(() => {
+      savedGame.current = null;
+    });
+  }, [player, game, request]);
+
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;

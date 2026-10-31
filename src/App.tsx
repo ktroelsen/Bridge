@@ -3,6 +3,7 @@ import { GameView } from './components/GameView';
 import { LessonList } from './components/LessonList';
 import { LessonView } from './components/LessonView';
 import { MiniBridgeView } from './components/MiniBridgeView';
+import { StatsView } from './components/StatsView';
 import { lessonById, LESSONS } from './lessons/content';
 import { usePlayer } from './player';
 import { useRoute } from './router';
@@ -24,9 +25,10 @@ export default function App() {
   let page;
   if (lesson) page = <LessonView key={lesson.id} lesson={lesson} player={player} navigate={navigate} />;
   else if (parts[0] === 'lektioner') page = <LessonList player={player} navigate={navigate} />;
-  else if (parts[0] === 'minibridge') page = <MiniBridgeView key={practice} onBack={home} practice={practice} />;
+  else if (parts[0] === 'minibridge') page = <MiniBridgeView key={practice} onBack={home} practice={practice} player={player.name} />;
   else if (parts[0] === 'point') page = <DealViewer onBack={home} />;
-  else if (parts[0] === 'spil') page = <GameView onBack={home} />;
+  else if (parts[0] === 'spil') page = <GameView onBack={home} player={player.name} />;
+  else if (parts[0] === 'statistik') page = <StatsView player={player} navigate={navigate} />;
   else page = <Home player={player} navigate={navigate} />;
 
   return (
@@ -73,6 +75,10 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
           <strong>Bridge mod bot</strong>
           <span>Rigtig bridge med meldinger. Du melder med en bot som makker, kan se hvad hver melding betyder, og kan spørge systemet om råd.</span>
         </button>
+        <button type="button" className="menu-item" onClick={() => navigate('/statistik')}>
+          <strong>Statistik</strong>
+          <span>Dine spil: hvor ofte du vinder dine kontrakter og sætter modstandernes.</span>
+        </button>
         <button type="button" className="menu-item" onClick={() => navigate('/point')}>
           <strong>Tæl point</strong>
           <span>Se alle fire hænder og øv dig i at tælle honnørpoint.</span>
@@ -82,8 +88,8 @@ function Home({ player, navigate }: { player: ReturnType<typeof usePlayer>; navi
         <h2>På vej</h2>
         <ul className="coming">
           <li>
-            <strong>Statistik</strong>
-            <span>Se dine spil og hvor du oftest taber stik.</span>
+            <strong>Egne spil</strong>
+            <span>Læg spil ind fra bøger eller klubaftener (PBN) og spil dem mod botterne.</span>
           </li>
         </ul>
       </section>
