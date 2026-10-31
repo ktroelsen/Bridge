@@ -1,4 +1,4 @@
-import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, QuizKind, Review } from './types';
+import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, PlayQuestion, QuizKind, Review } from './types';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -51,3 +51,6 @@ export const fetchMiniBridgeHint = (request: MiniBridgeRequest) => post<PlayHint
 /** The double dummy review of a finished deal. */
 export const fetchGameReview = (request: GameRequest) => post<Review>('/api/game/review', request);
 export const fetchMiniBridgeReview = (request: MiniBridgeRequest) => post<Review>('/api/minibridge/review', request);
+
+/** A declarer play problem with all four hands open, solved double dummy. */
+export const fetchPlayQuestion = (stage: 'early' | 'middle') => call<PlayQuestion>(`/api/quiz/play?stage=${stage}`);

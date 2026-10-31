@@ -3,6 +3,7 @@ import { LESSONS } from '../lessons/content';
 import type { Lesson, Question, Visual } from '../lessons/types';
 import type { QuizKind } from '../types';
 import { BidQuestionView } from './BidQuestionView';
+import { PlayQuestionView } from './PlayQuestionView';
 import type { PlayerState } from '../player';
 import { LessonVisual } from './LessonVisual';
 import { QuestionView } from './QuestionView';
@@ -11,13 +12,23 @@ import { Rich } from './Rich';
 type Screen =
   | { kind: 'text'; title: string; body: string[]; visual?: Visual }
   | { kind: 'question'; question: Question; title?: string; intro?: string; index?: number; count?: number }
-  | { kind: 'bidding'; quiz: QuizKind; title: string; intro: string; index: number; count: number };
+  | { kind: 'bidding'; quiz: QuizKind; title: string; intro: string; index: number; count: number }
+  | { kind: 'play'; stage: 'early' | 'middle'; title: string; intro: string; index: number; count: number };
 
 /** Flattens a lesson into screens; drill questions are made fresh each time the lesson starts. */
 function screensOf(lesson: Lesson): Screen[] {
   return lesson.steps.flatMap((step): Screen[] => {
     if (step.type === 'text') return [{ kind: 'text', title: step.title, body: step.body, visual: step.visual }];
     if (step.type === 'question') return [{ kind: 'question', question: step.question }];
+    if (step.type === 'play')
+      return Array.from({ length: step.count }, (_, i) => ({
+        kind: 'play' as const,
+        stage: step.stage,
+        title: step.title,
+        intro: step.intro,
+        index: i + 1,
+        count: step.count,
+      }));
     if (step.type === 'bidding')
       return Array.from({ length: step.count }, (_, i) => ({
         kind: 'bidding' as const,
@@ -107,6 +118,23 @@ export function LessonView({ lesson, player, navigate }: { lesson: Lesson; playe
               Næste
             </button>
           </div>
+        </div>
+      )}
+
+      {!done && screen.kind === 'play' && (
+        <div>
+          <h2>
+            {screen.title} <span className="muted small">{screen.index} af {screen.count}</span>
+          </h2>
+          {screen.index === 1 && <p className="lead">{screen.intro}</p>}
+          <PlayQuestionView key={at} stage={screen.stage} answered={answered} onAnswer={answer} />
+          {answered && (
+            <div className="controls">
+              <button type="button" className="button" onClick={next} autoFocus>
+                Næste
+              </button>
+            </div>
+          )}
         </div>
       )}
 

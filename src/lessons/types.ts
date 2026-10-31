@@ -32,7 +32,9 @@ export type Step =
   | { type: 'question'; question: Question }
   | { type: 'drill'; title: string; intro: string; count: number; generate: () => Question }
   /** "What do you bid?" questions from the server, answered by the bidding system. */
-  | { type: 'bidding'; title: string; intro: string; count: number; quiz: QuizKind };
+  | { type: 'bidding'; title: string; intro: string; count: number; quiz: QuizKind }
+  /** "Find the best card": declarer play problems from the server, all hands open. */
+  | { type: 'play'; title: string; intro: string; count: number; stage: 'early' | 'middle' };
 
 
 export interface Lesson {

@@ -152,3 +152,18 @@ export interface Review {
   complete: boolean;
   mistakes: Mistake[];
 }
+
+export interface PlayQuestion {
+  number: number;
+  contract: Contract;
+  toPlay: Seat;
+  /** Tricks played so far. */
+  trick: number;
+  tricksNorthSouth: number;
+  tricksEastWest: number;
+  hands: { seat: Seat; cards: Card[] }[];
+  legalCards: Card[];
+  best: Card[];
+  bestTricks: number;
+  values: { card: Card; tricks: number }[];
+}

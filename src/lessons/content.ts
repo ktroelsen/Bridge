@@ -557,11 +557,125 @@ export const LESSONS: Lesson[] = [
     ],
     practice: { text: 'Spil bridge med meldinger. Når modstanderne åbner, kan du nu blande dig.', path: '/spil', button: 'Spil bridge' },
   },
+  {
+    id: 'spilfoering-1',
+    title: 'Spilføring: tæl og planlæg',
+    summary: 'Før du spiller første kort: tæl dine sikre stik eller dine tabere, og læg en plan.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Læg en plan',
+        body: [
+          'Når udspillet er kommet, og blinden ligger på bordet, så **stop op, før du spiller fra blinden**. Gode spilførere bruger et øjeblik på at lægge en plan.',
+          'Start med at regne ud, **hvor mange stik du skal have**: niveau + 6.',
+          'I **uden trumf** tæller du dine **sikre stik** (vindere). I et **trumfspil** tæller du dine **tabere**. Så ved du, hvor mange stik der mangler, og hvad du skal arbejde for.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Sikre stik i uden trumf',
+        body: [
+          'Et **sikkert stik** er et topkort, du kan tage, uden at modstanderne kommer ind: esset, så kongen, hvis I også har den, og så videre.',
+          'Tæl for hver farve de topkort, I har i træk fra esset, uanset om de sidder hos dig eller i blinden. Men aldrig flere, end den **længste** af de to hænder har kort i farven.',
+          'Her har I ♠E K D (3 stik), ♥E K (2), ♦E K (2) og ♣E (1): i alt **8 sikre stik**. I 3UT skal du bruge 9, så du mangler ét.',
+        ],
+        visual: { type: 'twoHands', north: parseHand('AK2.Q3.5432.5432'), south: parseHand('Q43.AK.AK2.A9876') },
+      },
+      { type: 'drill', title: 'Tæl sikre stik', intro: 'Nord er blind, du er Syd. Der spilles uden trumf.', count: 5, generate: drill.countWinners },
+      {
+        type: 'text',
+        title: 'Tabere i trumfspil',
+        body: [
+          'I et trumfspil er det lettere at tælle **tabere** på din egen hånd. Se på de **tre øverste kort** i hver farve: hvert manglende **es, konge og dame** er en taber.',
+          'En single er en taber, medmindre det er esset. En doubleton har højst to tabere. En renonce har ingen.',
+          'Bagefter ser du på blinden: kan den **stjæle** nogle af dine tabere (fordi den er kort i farven), eller kan du **smide** tabere på blindens topkort?',
+        ],
+        visual: { type: 'hand', cards: parseHand('AKQ43.K2.Q.J987') },
+      },
+      { type: 'drill', title: 'Tæl tabere', intro: 'Du er spilfører i et trumfspil. Tæl tabere på din egen hånd.', count: 5, generate: drill.countLosers },
+      {
+        type: 'text',
+        title: 'Find det bedste kort',
+        body: [
+          'Nu skal du øve dig i at spille. I opgaverne kan du **se alle fire hænder**, som i en bridgeopgave i avisen. Find det kort, der giver flest stik.',
+          'Svaret er regnet ud af computeren, så det er altid rigtigt, når alle spiller perfekt.',
+        ],
+      },
+      { type: 'play', title: 'Find det bedste kort', intro: 'Alle kort er åbne. Du og blinden har udspillet.', count: 4, stage: 'early' },
+    ],
+    practice: { text: 'Spil mini-bridge som spilfører og brug "Gennemgå spillet" bagefter.', path: '/minibridge?ov=declare', button: 'Øv i mini-bridge' },
+  },
+  {
+    id: 'spilfoering-2',
+    title: 'Spilføring: teknikker',
+    summary: 'Træk trumf, masker, etabler en lang farve og stjæl i den korte hånd.',
+    steps: [
+      {
+        type: 'text',
+        title: 'Træk trumf',
+        body: [
+          'I et trumfspil er det tit klogt at **trække trumf** først: spil trumf, indtil modstanderne ikke har flere. Så kan de ikke stjæle dine topkort.',
+          'Tæl modstandernes trumf: har I 8 tilsammen, har de 5. Hold styr på, hvor mange der er faldet.',
+          'Men vent med at trække trumf, hvis du først skal bruge blindens trumf til at stjæle med.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Stjæl i den korte hånd',
+        body: [
+          'Har blinden færre kort i en farve end dig, kan du **stjæle** dine tabere i den farve med blindens trumf. Hver gang giver det et ekstra stik.',
+          'Det giver kun ekstra stik at stjæle i den hånd, der har **færrest trumf** (normalt blinden). Stjæler du på din egen lange trumfhånd, bruger du bare en trumf, du alligevel ville have vundet med.',
+        ],
+      },
+      {
+        type: 'text',
+        title: 'Maskering',
+        body: [
+          'Har blinden **♠E D** og du **♠3 2**, mangler I kongen. Spiller du ♠E og så ♠D, vinder modstanderen med kongen.',
+          'Spil i stedet **lille fra hånden mod ♠D** (det hedder at **maskere**). Har Vest kongen, kan han ikke gøre noget: lægger han den, tager du med esset, og ellers vinder damen. Så får du to stik i halvdelen af tilfældene.',
+          'Huskereglen er: **spil mod det kort, du håber vinder**, ikke fra det.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Blinden (Nord) har ♠E D, og du har ♠3 2. Du er inde på hånden. Hvordan får du bedst to spar-stik?',
+          answer: {
+            type: 'options',
+            options: ['Spil ♠E og så ♠D', 'Spil lille spar mod blindens ♠D', 'Vent og håb, at nogen spiller spar til dig'],
+            correct: [1],
+          },
+          explain: 'Spil mod damen. Sidder kongen hos Vest (før blinden), vinder ♠D. Spiller du esset først, falder damen kun, hvis kongen sidder alene.',
+        },
+      },
+      {
+        type: 'text',
+        title: 'Etablér en lang farve',
+        body: [
+          'I uden trumf kommer de ekstra stik ofte fra en **lang farve**. Har I fx 8 ruder, men mangler esset, må du give et stik væk først. Når modstandernes ruder er spillet ud, er dine små ruder blevet vindere.',
+          'Det gælder om at gøre det tidligt, mens du stadig har topkort i de andre farver at komme ind på.',
+        ],
+      },
+      {
+        type: 'question',
+        question: {
+          prompt: 'Du spiller 4♥ og har 4 tabere: én i spar og tre i klør. Blinden har kun én klør. Hvad er planen?',
+          answer: {
+            type: 'options',
+            options: ['Træk alle trumf med det samme', 'Stjæl klør i blinden, før trumfen trækkes ud', 'Spil uden trumf i stedet'],
+            correct: [1],
+          },
+          explain: 'Blinden er kort i klør. Spil klør og stjæl med blindens trumf, så forsvinder to tabere. Trækker du trumf først, har blinden ikke flere trumf at stjæle med.',
+        },
+      },
+      { type: 'play', title: 'Find det bedste kort', intro: 'Længere inde i spillet. Alle kort er åbne.', count: 6, stage: 'middle' },
+    ],
+    practice: { text: 'Spil mini-bridge, hvor I har en trumffit, og brug teknikkerne.', path: '/minibridge?ov=trumpFit', button: 'Øv i mini-bridge' },
+  },
 ];
 
 /** Topics that come later (shown as locked in the list). */
 export const COMING_LESSONS = [
-  { title: 'Spilføring', summary: 'Tæl vindere og tabere, træk trumf og lav en plan.' },
   { title: 'Modspil', summary: 'Udspil, signaler og samarbejde med makker.' },
   { title: 'Slem', summary: 'Når I kan tage 12 eller 13 stik.' },
 ];

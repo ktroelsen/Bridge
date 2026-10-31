@@ -48,3 +48,33 @@ public class QuizTests(TestFactory factory) : IClassFixture<TestFactory>
         Assert.False(string.IsNullOrWhiteSpace(q.Answer.Explanation));
     }
 }
+
+public class PlayQuizTests(TestFactory factory) : IClassFixture<TestFactory>
+{
+    [Theory]
+    [InlineData(3, 4)]
+    [InlineData(6, 9)]
+    public void Problems_have_north_south_on_lead_and_a_wrong_card(int from, int to)
+    {
+        var random = new Random(3);
+        for (var i = 0; i < 5; i++)
+        {
+            var q = Bridge.Engine.Analysis.PlayQuiz.Make(from, to, random, TimeSpan.FromSeconds(30));
+            Assert.True(q.Play.NextToPlay.IsNorthSouth());
+            Assert.True(q.Play.Contract.Declarer.IsNorthSouth());
+            Assert.Empty(q.Play.CurrentTrick.Plays);
+            Assert.InRange(q.Play.Tricks.Count, from, to);
+            Assert.True(q.Best.Values.Values.Min() < q.Best.SideTricks);
+            Assert.All(q.Best.Cards, c => Assert.Contains(c, q.Play.LegalCards()));
+        }
+    }
+
+    [Fact]
+    public async Task Play_quiz_endpoint_returns_a_problem()
+    {
+        var q = (await factory.CreateClient().GetFromJsonAsync<PlayQuestionDto>("/api/quiz/play?stage=early", TestFactory.Json))!;
+        Assert.Equal(4, q.Hands.Count);
+        Assert.NotEmpty(q.Best);
+        Assert.Equal(q.LegalCards.Count, q.Values.Count);
+    }
+}

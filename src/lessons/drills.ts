@@ -1,6 +1,6 @@
 import { cardLabel, cardsInSuit, gameLevel, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, SUIT_NAME, SUIT_SYMBOL } from '../cards';
 import { suggestContract, fits } from '../coach';
-import { cardHcp, hcp, isBalanced, leftOf, legalCards, nextSeat, pick, randomDeal, SEATS, shape, suitLength, winningPlay, beats } from '../deck';
+import { cardHcp, hcp, isBalanced, leftOf, legalCards, nextSeat, pick, randomDeal, rankValue, SEATS, shape, suitLength, winningPlay, beats } from '../deck';
 import type { Card, PlayedCard, Seat, Strain, Suit } from '../types';
 import type { Question } from './types';
 
@@ -231,5 +231,64 @@ export function openingLeader(): Question {
     prompt: `${SEAT_NAME[decl]} er spilfører. Hvem spiller ud til første stik?`,
     answer: { type: 'options', options: seatOptions, correct: [SEATS.indexOf(leader)] },
     explain: `Spilleren til venstre for spilføreren spiller ud. Til venstre for ${SEAT_NAME[decl]} sidder ${SEAT_NAME[leader]} (spillet går med uret: Nord, Øst, Syd, Vest).`,
+  };
+}
+
+/** Sure winners for North-South in each suit: top cards in a row, at most as many as the longer hand has. */
+export function sureWinners(north: Card[], south: Card[]) {
+  return SUITS.map((suit) => {
+    const ours = [...north, ...south].filter((c) => c.suit === suit);
+    let tops = 0;
+    for (let v = 14; v >= 2; v--) {
+      const ourCard = ours.some((c) => rankValue(c.rank) === v);
+      if (!ourCard) break;
+      tops++;
+    }
+    const longer = Math.max(suitLength(north, suit), suitLength(south, suit));
+    return { suit, tops, sure: Math.min(tops, longer) };
+  });
+}
+
+/** "How many sure tricks?" in no trump, with North as dummy. */
+export function countWinners(): Question {
+  const deal = randomDeal();
+  const per = sureWinners(deal.north, deal.south);
+  const total = per.reduce((n, s) => n + s.sure, 0);
+  const parts = per.filter((s) => s.sure > 0).map((s) => `${SUIT_SYMBOL[s.suit]} ${s.sure}`);
+  const capped = per.find((s) => s.tops > s.sure);
+  return {
+    prompt: 'Du spiller i uden trumf. Hvor mange sikre stik har Nord og Syd tilsammen?',
+    visual: { type: 'twoHands', north: deal.north, south: deal.south },
+    answer: { type: 'number', min: 0, max: 13, correct: total },
+    explain: `${parts.length ? parts.join(', ') : 'Ingen farve har esset'}: i alt ${total} sikre stik.${
+      capped
+        ? ` I ${SUIT_SYMBOL[capped.suit]} har I ${capped.tops} topkort, men den længste hånd har kun ${capped.sure} kort, så det giver ${capped.sure} stik.`
+        : ''
+    } Et sikkert stik er et topkort, I kan tage uden at give udspillet væk.`,
+  };
+}
+
+/** Losers in one suit of declarer's hand, looking at the top three cards. */
+export function suitLosers(hand: Card[], suit: Suit) {
+  const cards = cardsInSuit(hand, suit);
+  const looked = Math.min(cards.length, 3);
+  const honours: Card['rank'][] = ['ace', 'king', 'queen'];
+  let losers = 0;
+  for (let i = 0; i < looked; i++) if (!cards.some((c) => c.rank === honours[i])) losers++;
+  return losers;
+}
+
+/** "How many losers?" in declarer's hand, trump contract. */
+export function countLosers(): Question {
+  let hand = randomDeal().south;
+  // A hand worth playing in a suit: a five-card suit or longer.
+  while (shape(hand)[0] < 5) hand = randomDeal().south;
+  const per = SUITS.map((s) => ({ suit: s, losers: suitLosers(hand, s), length: suitLength(hand, s) }));
+  const total = per.reduce((n, s) => n + s.losers, 0);
+  return {
+    prompt: 'Du er spilfører i et trumfspil. Hvor mange tabere har din hånd?',
+    visual: { type: 'hand', cards: hand },
+    answer: { type: 'number', min: 0, max: 13, correct: total },
+    explain: `${per.map((s) => `${SUIT_SYMBOL[s.suit]} ${s.losers}`).join(', ')}: i alt ${total} tabere. Se på de tre øverste kort i hver farve: hvert manglende es, konge og dame er en taber (en single taber kun, hvis den ikke er esset; en doubleton højst to).`,
   };
 }
