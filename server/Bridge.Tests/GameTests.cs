@@ -100,3 +100,44 @@ public class GameTests(TestFactory factory) : IClassFixture<TestFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
+
+public class AnalysisApiTests(TestFactory factory) : IClassFixture<TestFactory>
+{
+    [Fact]
+    public async Task Finished_game_can_be_reviewed_and_play_hints_are_legal()
+    {
+        var client = factory.CreateClient();
+        // Play a mini-bridge game where the human declares, following the hints.
+        var number = Enumerable.Range(1, 500).First(n => MiniBridge.Declarer(Deal.FromNumber(n))?.IsNorthSouth() == true);
+        var contract = new ContractChoiceDto(Strain.NoTrump, true);
+        var cards = new List<CardDto>();
+        MiniBridgeDto game;
+        while (true)
+        {
+            var response = await client.PostAsJsonAsync("/api/minibridge", new MiniBridgeRequest(number, contract, cards), TestFactory.Json);
+            game = (await response.Content.ReadFromJsonAsync<MiniBridgeDto>(TestFactory.Json))!;
+            if (game.Phase == GamePhase.Done) break;
+            var hint = await client.PostAsJsonAsync("/api/minibridge/hint", new MiniBridgeRequest(number, contract, cards), TestFactory.Json);
+            hint.EnsureSuccessStatusCode();
+            var best = (await hint.Content.ReadFromJsonAsync<PlayHintDto>(TestFactory.Json))!;
+            Assert.NotEmpty(best.Cards);
+            Assert.All(best.Cards, c => Assert.Contains(c, game.LegalCards));
+            cards.Add(best.Cards[0]);
+        }
+
+        var reviewResponse = await client.PostAsJsonAsync("/api/minibridge/review", new MiniBridgeRequest(number, contract, cards), TestFactory.Json);
+        reviewResponse.EnsureSuccessStatusCode();
+        var review = (await reviewResponse.Content.ReadFromJsonAsync<ReviewDto>(TestFactory.Json))!;
+        Assert.True(review.Complete);
+        // Following the double dummy hints, the human never gives a trick away.
+        Assert.DoesNotContain(review.Mistakes, m => m.By == MistakeBy.You);
+        Assert.Equal(game.TricksNorthSouth, review.DeclarerTricks);
+    }
+
+    [Fact]
+    public async Task Review_of_an_unfinished_game_is_rejected()
+    {
+        var response = await factory.CreateClient().PostAsJsonAsync("/api/game/review", new GameRequest(1, [], []), TestFactory.Json);
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+}

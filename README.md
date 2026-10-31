@@ -27,6 +27,10 @@ fuldt spil) og første del af fase 3 (lektioner 1–5) er på plads. Man kan:
   spiller, og spilføreren vælger trumf og delkontrakt eller udgang. Du sidder Syd og spiller
   også Nord, når I har kontrakten. En trænerlinje forklarer, hvad du skal (bekende, trumfe,
   udspil), og træneren kan foreslå en kontrakt.
+- **Få hjælp i kortspillet:** "Hvad er bedst?" markerer de bedste kort, og efter spillet viser
+  "Gennemgå spillet", hvor mange stik spilføreren kunne have taget med perfekt spil, og hvilke
+  kort der kostede stik (dine, makkers og modstandernes). Begge dele bruger en double
+  dummy-løser (alle kort åbne) i `Bridge.Engine/Analysis/`.
 - **Tælle point:** se kortgivninger med alle fire hænder åbne.
 
 Lektioner om meldinger og fuldt spil med meldinger kommer i de næste faser.
@@ -137,6 +141,10 @@ Engangsopsætning:
   - Svaret indeholder meldingerne med forklaring, dine lovlige meldinger, systemets forslag
     (`hint`), feedback på dine meldinger (`systemCall`), kontrakten og resten som ved
     mini-bridge.
+- `POST /api/game/hint` og `POST /api/minibridge/hint` (samme body som spillet): de bedste
+  kort for dig lige nu og antal stik, din side så tager med perfekt spil.
+- `POST /api/game/review` og `POST /api/minibridge/review` (et færdigt spil): stik med perfekt
+  spil og hver fejl med stik, sæde, kort, hvad den kostede og bedre kort.
 - `POST /api/players` med `{ "name": "Kasper" }` opretter eller finder en spiller (navnet er
   nøglen, uden forskel på store og små bogstaver).
 - `GET /api/players/{navn}/progress` giver den bedste score pr. lektion.

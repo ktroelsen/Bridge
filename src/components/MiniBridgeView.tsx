@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { postMiniBridge } from '../api';
+import { fetchMiniBridgeHint, fetchMiniBridgeReview, postMiniBridge } from '../api';
 import { fits, suggestContract } from '../coach';
 import { gameLevel, isNorthSouth, isRed, partnerOf, SEAT_NAME, STRAIN_LABEL, STRAIN_NAME, STRAINS, SUIT_SYMBOL, VULNERABILITY_NAME } from '../cards';
 import { loadMiniBridge, saveMiniBridge } from '../storage';
 import type { Card, ContractChoice, MiniBridgeRequest, MiniBridgeState, Practice, Seat, Strain } from '../types';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
 import { PlayHand } from './PlayHand';
+import { ReviewPanel } from './ReviewPanel';
 
 const newGameRequest = (practice: Practice): MiniBridgeRequest => ({ number: null, contract: null, cards: [], practice });
 
@@ -129,6 +130,7 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
           myTurn={myTurn}
           onPlay={play}
           hcpOf={(seat) => game.hcp.find((h) => h.seat === seat)?.hcp}
+          getHint={request ? () => fetchMiniBridgeHint(request) : undefined}
           intro={
             !isNorthSouth(contract.declarer)
               ? `${SEAT_NAME[contract.declarer]} har flest point og spiller ${contractText(contract)}. ${SEAT_NAME[partnerOf(contract.declarer)]} er blind.`
@@ -146,7 +148,9 @@ export function MiniBridgeView({ onBack, practice = 'any' }: { onBack: () => voi
           fullDeal={game.fullDeal}
           onNew={newGame}
           onReplay={replay}
-        />
+        >
+          {request && <ReviewPanel key={game.number} contract={contract} load={() => fetchMiniBridgeReview(request)} />}
+        </GameResult>
       )}
     </section>
   );

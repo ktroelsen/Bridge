@@ -148,6 +148,15 @@ findes en x86-udgave af DLL'en, og at den kan loades på Simply. Planen er derfo
 Uanset valget kan der sættes en tidsgrænse pr. træk eller skrues ned for antallet af
 simulationer, hvis ydelsen bliver et problem.
 
+**Beslutning (fase 4):** Løseren er skrevet i ren C# (`Bridge.Engine/Analysis/DoubleDummy.cs`).
+`ddsWrapper` kræver en Windows-DLL, så den kan ikke køre i CI-testene (Linux), og det er
+usikkert, om den virker på Simplys 32-bit-server. Løseren bruger alfa-beta med "kan NS tage
+mindst n stik?", lige store kort søges én gang, sikre stik som grænse og partition search
+(cachen gemmer, hvilke topkort et resultat afhænger af). Et fuldt spil løses på 0,1–2 sekunder,
+og en hel gennemgang af et spil (alle 52 stillinger) tager typisk under 1 sekund, fordi
+cachen deles mellem stillingerne. Optimal kontrakt (alle 20 kombinationer af trumf og
+spilfører) er endnu ikke med.
+
 **Meldebot:** Der findes ingen NuGet-pakke til meldinger. EPBot (motoren bag programmet BBA)
 er en gratis .NET-DLL, men den er bygget til .NET Framework 4.8.1, har sine egne systemer og
 giver ikke danske, pædagogiske forklaringer. Derfor skriver vi vores egen regelmotor. EPBot kan

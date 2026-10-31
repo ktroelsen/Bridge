@@ -130,3 +130,25 @@ export interface BiddingQuestion {
   legalCalls: string[];
   answer: { call: string; explanation: string };
 }
+
+export interface PlayHint {
+  cards: Card[];
+  /** Tricks the player's side takes in total with perfect play from here. */
+  sideTricks: number;
+}
+
+export interface Mistake {
+  trick: number;
+  seat: Seat;
+  by: 'you' | 'partner' | 'opponents';
+  card: Card;
+  cost: number;
+  better: Card[];
+}
+
+export interface Review {
+  declarerTricksPerfect: number;
+  declarerTricks: number;
+  complete: boolean;
+  mistakes: Mistake[];
+}

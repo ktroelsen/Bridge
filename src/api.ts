@@ -1,4 +1,4 @@
-import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, QuizKind } from './types';
+import type { BiddingQuestion, DealInfo, GameRequest, GameState, MiniBridgeRequest, MiniBridgeState, PlayHint, QuizKind, Review } from './types';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -43,3 +43,11 @@ export const postGame = (request: GameRequest) => post<GameState>('/api/game', r
 
 /** A fresh "what do you bid?" question, answered by the bidding system. */
 export const fetchBiddingQuestion = (kind: QuizKind) => call<BiddingQuestion>(`/api/quiz/bidding?kind=${kind}`);
+
+/** The best cards for the player right now (double dummy: all cards open). */
+export const fetchGameHint = (request: GameRequest) => post<PlayHint>('/api/game/hint', request);
+export const fetchMiniBridgeHint = (request: MiniBridgeRequest) => post<PlayHint>('/api/minibridge/hint', request);
+
+/** The double dummy review of a finished deal. */
+export const fetchGameReview = (request: GameRequest) => post<Review>('/api/game/review', request);
+export const fetchMiniBridgeReview = (request: MiniBridgeRequest) => post<Review>('/api/minibridge/review', request);

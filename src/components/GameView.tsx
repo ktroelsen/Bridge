@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { postGame } from '../api';
+import { fetchGameHint, fetchGameReview, postGame } from '../api';
 import { callLabel, isNorthSouth, SEAT_NAME, VULNERABILITY_NAME } from '../cards';
 import { loadGame, saveGame } from '../storage';
 import type { Card, GameRequest, GameState, Seat } from '../types';
@@ -7,6 +7,7 @@ import { AuctionTable } from './AuctionTable';
 import { BiddingBox } from './BiddingBox';
 import { contractText, GameResult, PlayTable, useTrickAnimation } from './CardTable';
 import { PlayHand } from './PlayHand';
+import { ReviewPanel } from './ReviewPanel';
 import { Rich } from './Rich';
 
 const NEW_GAME: GameRequest = { number: null, calls: [], cards: [] };
@@ -175,6 +176,7 @@ export function GameView({ onBack }: { onBack: () => void }) {
             myTurn={myTurn}
             onPlay={play}
             hcpOf={(seat) => (seat === 'south' ? game.southHcp : undefined)}
+            getHint={() => fetchGameHint(request)}
             intro={`${SEAT_NAME[contract.declarer]} spiller ${contractText(contract)}. ${
               isNorthSouth(contract.declarer) ? 'Du spiller både Nords og Syds kort. ' : ''
             }${leader === 'south' ? 'Du skal spille ud.' : `${SEAT_NAME[leader!]} spiller ud.`}`}
@@ -216,7 +218,9 @@ export function GameView({ onBack }: { onBack: () => void }) {
           fullDeal={game.fullDeal}
           onNew={newGame}
           onReplay={replay}
-        />
+        >
+          <ReviewPanel key={game.number} contract={contract} load={() => fetchGameReview(request)} />
+        </GameResult>
       )}
     </section>
   );

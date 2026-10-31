@@ -386,6 +386,16 @@ body {
 .lesson-done .tip { margin: 12px 0; }
 .lesson-done .tip p { margin: 0 0 8px; }
 
+/* Double dummy help */
+.card-chip.best { outline: 3px solid var(--gold); outline-offset: 1px; }
+.hint-row { margin-top: 8px; }
+.hint-row .tip { margin: 0; }
+.review { margin: 12px 0; }
+.review h3 { margin-top: 0; }
+.mistakes { margin: 6px 0 10px; padding-left: 18px; line-height: 1.5; }
+.mistakes li { margin-bottom: 4px; }
+.mistakes.others { color: var(--muted); }
+
 /* Bidding */
 .auction-details { margin-top: 10px; border-top: 1px solid var(--paper-edge); padding-top: 6px; }
 .auction-details summary { cursor: pointer; font-weight: 600; color: var(--felt); padding: 4px 0; }

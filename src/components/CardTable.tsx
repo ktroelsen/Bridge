@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { playAdvice } from '../coach';
 import { cardLabel, isNorthSouth, isRed, SEAT_NAME, STRAIN_LABEL, SUIT_SYMBOL } from '../cards';
-import type { Card, Contract, DealInfo, PlayedCard, Seat, Strain, Trick } from '../types';
+import type { Card, Contract, DealInfo, PlayHint, PlayedCard, Seat, Strain, Trick } from '../types';
 import { DealTable } from './DealTable';
 import { HiddenHand, PlayHand } from './PlayHand';
 
@@ -61,6 +61,7 @@ export function PlayTable({
   onPlay,
   hcpOf,
   intro,
+  getHint,
 }: {
   anim: TrickAnimation;
   tricks: Trick[];
@@ -72,8 +73,23 @@ export function PlayTable({
   onPlay: (card: Card) => void;
   hcpOf?: (seat: Seat) => number | undefined;
   intro?: string;
+  /** Asks the server for the best cards (double dummy). */
+  getHint?: () => Promise<PlayHint>;
 }) {
   const { plays, shown, cleared, animating } = anim;
+  // The hint belongs to one position: forget it when a card is played.
+  const [hint, setHint] = useState<{ at: number; hint: PlayHint | null; error?: string } | null>(null);
+  const currentHint = hint && hint.at === plays.length ? hint : null;
+  const askHint = async () => {
+    if (!getHint) return;
+    const at = plays.length;
+    setHint({ at, hint: null });
+    try {
+      setHint({ at, hint: await getHint() });
+    } catch (e) {
+      setHint({ at, hint: null, error: e instanceof Error ? e.message : 'Kunne ikke finde et råd.' });
+    }
+  };
   const trump = contract.strain !== 'noTrump' ? contract.strain : null;
   const dummy: Seat = ({ north: 'south', south: 'north', east: 'west', west: 'east' } as const)[contract.declarer];
 
@@ -107,7 +123,14 @@ export function PlayTable({
           {role(seat) && <span className="role">{role(seat)}</span>}
         </div>
         {cards ? (
-          <PlayHand cards={cards} legal={legalCards} active={active} onPlay={onPlay} large={seat === 'south'} />
+          <PlayHand
+            cards={cards}
+            legal={legalCards}
+            active={active}
+            onPlay={onPlay}
+            large={seat === 'south'}
+            best={active && currentHint?.hint ? currentHint.hint.cards : undefined}
+          />
         ) : (
           <HiddenHand count={hiddenCount(seat)} />
         )}
@@ -161,6 +184,24 @@ export function PlayTable({
       <p className="coach" aria-live="polite">
         {advice ?? (shown === 0 && intro ? intro : ' ')}
       </p>
+      {myTurn && getHint && (
+        <div className="hint-row">
+          {!currentHint && (
+            <button type="button" className="button secondary" onClick={askHint}>
+              Hvad er bedst?
+            </button>
+          )}
+          {currentHint && !currentHint.hint && !currentHint.error && <span className="muted">Regner …</span>}
+          {currentHint?.error && <span className="error">{currentHint.error}</span>}
+          {currentHint?.hint && (
+            <p className="tip">
+              <strong>Bedst: {currentHint.hint.cards.slice(0, 4).map(cardLabel).join(', ')}</strong>
+              {currentHint.hint.cards.length > 4 ? ' m.fl.' : ''}. Så kan I tage {currentHint.hint.sideTricks} stik i alt, hvis alle spiller
+              perfekt (regnet med alle kort åbne).
+            </p>
+          )}
+        </div>
+      )}
     </>
   );
 }
