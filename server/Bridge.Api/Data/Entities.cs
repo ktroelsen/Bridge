@@ -42,4 +42,25 @@ public class GameRecord
     public bool Made { get; set; }
     public int ScoreNorthSouth { get; set; }
     public DateTime FinishedAt { get; set; }
+    /// <summary>The challenge this game was played in, if any. Only the first result per deal counts there.</summary>
+    public int? ChallengeId { get; set; }
+}
+
+/// <summary>
+/// A challenge: a fixed series of deals that friends play against the bots, each on their own,
+/// and then compare deal by deal (like duplicate bridge, where everyone plays the same cards).
+/// </summary>
+public class Challenge
+{
+    public int Id { get; set; }
+    /// <summary>Share code, e.g. "K7Q2MX".</summary>
+    public string Code { get; set; } = "";
+    public int CreatedById { get; set; }
+    public Player CreatedBy { get; set; } = null!;
+    /// <summary>"mini" or "full".</summary>
+    public string Mode { get; set; } = "";
+    public string Level { get; set; } = "";
+    /// <summary>The deal numbers as JSON, in playing order.</summary>
+    public string NumbersJson { get; set; } = "[]";
+    public DateTime CreatedAt { get; set; }
 }

@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Player> Players => Set<Player>();
     public DbSet<LessonProgress> LessonProgress => Set<LessonProgress>();
     public DbSet<GameRecord> Games => Set<GameRecord>();
+    public DbSet<Challenge> Challenges => Set<Challenge>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(g => g.Declarer).HasMaxLength(8);
             e.HasOne(g => g.Player).WithMany().HasForeignKey(g => g.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(g => new { g.PlayerId, g.FinishedAt });
+            e.HasOne<Challenge>().WithMany().HasForeignKey(g => g.ChallengeId).OnDelete(DeleteBehavior.Cascade);
+            // One result per player and deal in a challenge.
+            e.HasIndex(g => new { g.ChallengeId, g.PlayerId, g.Number }).IsUnique().HasFilter("ChallengeId IS NOT NULL");
+        });
+
+        modelBuilder.Entity<Challenge>(e =>
+        {
+            e.Property(c => c.Code).HasMaxLength(8);
+            e.Property(c => c.Mode).HasMaxLength(8);
+            e.Property(c => c.Level).HasMaxLength(8);
+            e.HasIndex(c => c.Code).IsUnique();
+            e.HasOne(c => c.CreatedBy).WithMany().HasForeignKey(c => c.CreatedById).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

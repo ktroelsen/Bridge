@@ -215,6 +215,7 @@ export function GameResult({
   fullDeal,
   onNew,
   onReplay,
+  newLabel = 'Nyt spil',
   children,
 }: {
   contract: Contract;
@@ -223,7 +224,8 @@ export function GameResult({
   score: number;
   fullDeal: DealInfo | null;
   onNew: () => void;
-  onReplay: () => void;
+  onReplay?: () => void;
+  newLabel?: string;
   children?: ReactNode;
 }) {
   const ns = isNorthSouth(contract.declarer);
@@ -245,11 +247,13 @@ export function GameResult({
       </p>
       <div className="controls">
         <button type="button" className="button" onClick={onNew}>
-          Nyt spil
+          {newLabel}
         </button>
-        <button type="button" className="button secondary" onClick={onReplay}>
-          Spil igen
-        </button>
+        {onReplay && (
+          <button type="button" className="button secondary" onClick={onReplay}>
+            Spil igen
+          </button>
+        )}
       </div>
       {children}
       {fullDeal && (

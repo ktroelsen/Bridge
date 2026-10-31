@@ -58,3 +58,21 @@ export function saveLevel(level: BotLevel) {
     /* not saved */
   }
 }
+
+/** Progress in a challenge deal, so it can be resumed. */
+export function loadChallengeGame<T>(code: string, number: number): T | null {
+  try {
+    const raw = localStorage.getItem(`bridge.challenge.${code}.${number}`);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveChallengeGame(code: string, number: number, request: unknown) {
+  try {
+    localStorage.setItem(`bridge.challenge.${code}.${number}`, JSON.stringify(request));
+  } catch {
+    /* not saved */
+  }
+}

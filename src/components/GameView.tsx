@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchGameHint, fetchGameReview, fetchGameTable, postGame, saveFullGame } from '../api';
 import { callLabel, isNorthSouth, SEAT_NAME, VULNERABILITY_NAME } from '../cards';
-import { loadGame, loadLevel, saveGame, saveLevel } from '../storage';
-import type { BotLevel, Card, GameRequest, GameState, Seat } from '../types';
+import { loadChallengeGame, loadGame, loadLevel, saveChallengeGame, saveGame, saveLevel } from '../storage';
+import type { BotLevel, Card, ChallengeGame, GameRequest, GameState, Seat } from '../types';
 import { LevelPicker } from './LevelPicker';
 import { AuctionTable } from './AuctionTable';
 import { BiddingBox } from './BiddingBox';
@@ -16,7 +16,7 @@ const newGameRequest = (level: BotLevel): GameRequest => ({ level, number: null,
 const NO_TRICKS: never[] = [];
 
 /** A full game against the bots: bidding with explanations and hints, then the play. */
-export function GameView({ onBack, player }: { onBack: () => void; player?: string | null }) {
+export function GameView({ onBack, player, challenge }: { onBack: () => void; player?: string | null; challenge?: ChallengeGame }) {
   const [request, setRequest] = useState<GameRequest | null>(null);
   const [game, setGame] = useState<GameState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -39,7 +39,8 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
         const state = await postGame(next);
         const saved = { ...next, number: state.number };
         setRequest(saved);
-        saveGame(saved);
+        if (challenge) saveChallengeGame(challenge.code, challenge.number, saved);
+        else saveGame(saved);
         setGame(state);
         // Select the player's latest call when the system would have bid something else.
         const last = state.auction.length - 1 - [...state.auction].reverse().findIndex((c) => c.seat === 'south');
@@ -61,7 +62,7 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
     const key = JSON.stringify(request);
     if (savedGame.current === key) return;
     savedGame.current = key;
-    saveFullGame(player, request).catch(() => {
+    saveFullGame(player, request, challenge?.code).catch(() => {
       savedGame.current = null;
     });
   }, [player, game, request]);
@@ -70,9 +71,14 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
   useEffect(() => {
     if (started.current) return;
     started.current = true;
+    if (challenge) {
+      const start: GameRequest = { level: challenge.level, number: challenge.number, calls: [], cards: [] };
+      void send(loadChallengeGame<GameRequest>(challenge.code, challenge.number) ?? start, false);
+      return;
+    }
     const saved = loadGame();
     void send(saved && (saved.level ?? 'easy') === loadLevel() ? saved : newGameRequest(loadLevel()), false);
-  }, [send]);
+  }, [send, challenge]);
 
   const newGame = () => void send(newGameRequest(level), false);
   const replay = () => game && void send({ level, number: game.number, calls: [], cards: [] }, false);
@@ -114,7 +120,8 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
     if (request.cards.length > 0) void send({ ...request, cards: request.cards.slice(0, -1) }, false);
     else if (request.calls.length > 0) void send({ ...request, calls: request.calls.slice(0, -1) }, false);
   };
-  const canUndo = !busy && !finished && (request.cards.length > 0 || request.calls.length > 0);
+  // No undo in a challenge: everybody gets one go at the deal.
+  const canUndo = !challenge && !busy && !finished && (request.cards.length > 0 || request.calls.length > 0);
 
   const chosen = selected !== null ? game.auction[selected] : null;
   const leader = contract ? (({ north: 'east', east: 'south', south: 'west', west: 'north' }) as const)[contract.declarer] : null;
@@ -151,12 +158,20 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
         <span className="muted">
           Spil {game.number} · {VULNERABILITY_NAME[game.vulnerability]}
         </span>
-        <button type="button" className="link" onClick={newGame} disabled={busy}>
-          Nyt spil
-        </button>
+        {!challenge && (
+          <button type="button" className="link" onClick={newGame} disabled={busy}>
+            Nyt spil
+          </button>
+        )}
       </div>
 
-      <LevelPicker level={level} onChange={changeLevel} disabled={busy} />
+      {challenge ? (
+        <p className="practice-label">
+          Udfordring {challenge.code} · spil {challenge.index} af {challenge.count}. Ingen hints og ingen fortryd.
+        </p>
+      ) : (
+        <LevelPicker level={level} onChange={changeLevel} disabled={busy} />
+      )}
       {busy && game.phase === 'play' && <p className="thinking muted small">Botterne tænker …</p>}
 
       {error && <p className="error">{error}</p>}
@@ -171,9 +186,11 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
           <PlayHand cards={south} legal={[]} active={false} onPlay={() => {}} large />
           <BiddingBox legal={game.legalCalls} onCall={call} disabled={busy} />
           <div className="controls">
-            <button type="button" className="button secondary" onClick={() => setShowHint(true)} disabled={!game.hint}>
-              Hvad siger systemet?
-            </button>
+            {!challenge && (
+              <button type="button" className="button secondary" onClick={() => setShowHint(true)} disabled={!game.hint}>
+                Hvad siger systemet?
+              </button>
+            )}
             {canUndo && (
               <button type="button" className="link" onClick={undo}>
                 Fortryd
@@ -200,7 +217,7 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
             myTurn={myTurn}
             onPlay={play}
             hcpOf={(seat) => (seat === 'south' ? game.southHcp : undefined)}
-            getHint={() => fetchGameHint(request)}
+            getHint={challenge ? undefined : () => fetchGameHint(request)}
             intro={`${SEAT_NAME[contract.declarer]} spiller ${contractText(contract)}. ${
               isNorthSouth(contract.declarer) ? 'Du spiller både Nords og Syds kort. ' : ''
             }${leader === 'south' ? 'Du skal spille ud.' : `${SEAT_NAME[leader!]} spiller ud.`}`}
@@ -223,12 +240,14 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
         <div className="notice">
           <p>Alle fire passede, så spillet bliver ikke spillet.</p>
           <div className="controls center-row">
-            <button type="button" className="button" onClick={newGame}>
-              Nyt spil
+            <button type="button" className="button" onClick={challenge ? onBack : newGame}>
+              {challenge ? 'Tilbage til udfordringen' : 'Nyt spil'}
             </button>
-            <button type="button" className="button secondary" onClick={replay}>
-              Meld igen
-            </button>
+            {!challenge && (
+              <button type="button" className="button secondary" onClick={replay}>
+                Meld igen
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -240,8 +259,9 @@ export function GameView({ onBack, player }: { onBack: () => void; player?: stri
           tricksEastWest={game.tricksEastWest}
           score={game.scoreNorthSouth ?? 0}
           fullDeal={game.fullDeal}
-          onNew={newGame}
-          onReplay={replay}
+          onNew={challenge ? onBack : newGame}
+          onReplay={challenge ? undefined : replay}
+          newLabel={challenge ? 'Tilbage til udfordringen' : undefined}
         >
           <ReviewPanel key={game.number} contract={contract} load={() => fetchGameReview(request)} />
           <OptimalPanel

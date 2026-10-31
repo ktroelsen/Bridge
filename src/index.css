@@ -405,6 +405,16 @@ body {
 .plus { color: var(--felt); font-weight: 700; }
 .minus { color: var(--red); font-weight: 700; }
 
+/* Challenges */
+.join { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
+.join input { text-transform: uppercase; letter-spacing: 0.1em; }
+.choice-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.share { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0 4px; }
+.share code { background: white; border: 1px solid var(--paper-edge); border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; overflow-wrap: anywhere; }
+.result-line { font-size: 0.95rem; }
+.recent li .button { align-self: flex-start; margin-top: 4px; }
+.stats-table tr.me th, .stats-table tr.me td { background: #e6f1e3; }
+
 /* Bot level */
 .level-picker { display: flex; align-items: center; gap: 4px; margin: 2px 0 6px; flex-wrap: wrap; }
 .level-picker button {

@@ -68,7 +68,7 @@ public static partial class PlayerEndpoints
     /// <summary>Finished games: the server replays the request and records the real result.</summary>
     private static void MapGameRecords(RouteGroupBuilder players)
     {
-        players.MapPost("/{name}/games/mini", async (string name, MiniBridgeRequest request, AppDbContext db) =>
+        players.MapPost("/{name}/games/mini", async (string name, MiniBridgeRequest request, string? challenge, AppDbContext db) =>
         {
             MiniBridgeGame game;
             try
@@ -82,10 +82,10 @@ public static partial class PlayerEndpoints
             }
             if (game.Phase != GamePhase.Done) return Results.BadRequest(new { error = "Spillet er ikke slut." });
             return await Save(db, name, "mini", request.Number!.Value, request.Level, JsonSerializer.Serialize(request with { Practice = Practice.Any }, Json),
-                game.Contract, game.Play!.DeclarerTricks, game.ScoreNorthSouth ?? 0);
+                game.Contract, game.Play!.DeclarerTricks, game.ScoreNorthSouth ?? 0, challenge);
         });
 
-        players.MapPost("/{name}/games/full", async (string name, GameRequest request, AppDbContext db) =>
+        players.MapPost("/{name}/games/full", async (string name, GameRequest request, string? challenge, AppDbContext db) =>
         {
             BridgeGame game;
             try
@@ -99,7 +99,7 @@ public static partial class PlayerEndpoints
             }
             if (game.Phase is not (GamePhase.Done or GamePhase.PassedOut)) return Results.BadRequest(new { error = "Spillet er ikke slut." });
             return await Save(db, name, "full", request.Number!.Value, request.Level, JsonSerializer.Serialize(request, Json),
-                game.Contract, game.Play?.DeclarerTricks ?? 0, game.ScoreNorthSouth ?? 0);
+                game.Contract, game.Play?.DeclarerTricks ?? 0, game.ScoreNorthSouth ?? 0, challenge);
         });
 
         players.MapGet("/{name}/stats", async (string name, AppDbContext db) =>
@@ -121,12 +121,28 @@ public static partial class PlayerEndpoints
     }
 
     private static async Task<IResult> Save(AppDbContext db, string name, string mode, int number, BotLevel level, string requestJson,
-        Contract? contract, int declarerTricks, int score)
+        Contract? contract, int declarerTricks, int score, string? challengeCode)
     {
         var player = await GetOrCreateAsync(db, name);
         if (player is null) return BadName();
+
+        int? challengeId = null;
+        if (!string.IsNullOrWhiteSpace(challengeCode))
+        {
+            var challenge = await Challenges.ChallengeEndpoints.Find(db, challengeCode);
+            if (challenge is null) return Results.NotFound(new { error = "Udfordringen findes ikke." });
+            if (challenge.Mode != mode || challenge.Level != Challenges.ChallengeEndpoints.LevelName(level)
+                || !Challenges.ChallengeEndpoints.Numbers(challenge).Contains(number))
+                return Results.BadRequest(new { error = "Spillet hører ikke til udfordringen." });
+            challengeId = challenge.Id;
+            // Only the first result on a deal counts in a challenge.
+            var first = await db.Games.FirstOrDefaultAsync(g => g.ChallengeId == challengeId && g.PlayerId == player.Id && g.Number == number);
+            if (first is not null) return Results.Ok(ToDto(first));
+        }
         // Saving the same finished game twice (a retry, a reload) returns the first record.
-        var existing = await db.Games.FirstOrDefaultAsync(g => g.PlayerId == player.Id && g.Mode == mode && g.RequestJson == requestJson);
+        var existing = challengeId is null
+            ? await db.Games.FirstOrDefaultAsync(g => g.PlayerId == player.Id && g.Mode == mode && g.RequestJson == requestJson && g.ChallengeId == null)
+            : null;
         if (existing is not null) return Results.Ok(ToDto(existing));
         var record = new GameRecord
         {
@@ -142,6 +158,7 @@ public static partial class PlayerEndpoints
             Made = contract is not null && declarerTricks >= contract.TricksNeeded,
             ScoreNorthSouth = score,
             FinishedAt = DateTime.UtcNow,
+            ChallengeId = challengeId,
         };
         db.Games.Add(record);
         await db.SaveChangesAsync();
@@ -156,7 +173,7 @@ public static partial class PlayerEndpoints
 
     private static LessonProgressDto ToDto(LessonProgress p) => new(p.LessonId, p.BestScore, p.CompletedAt);
 
-    private static IResult BadName() =>
+    public static IResult BadName() =>
         Results.BadRequest(new { error = $"Navnet skal være 1-{MaxNameLength} tegn." });
 
     private static string? Clean(string? name)
@@ -165,7 +182,7 @@ public static partial class PlayerEndpoints
         return trimmed.Length is >= 1 and <= MaxNameLength ? trimmed : null;
     }
 
-    private static async Task<Player?> FindAsync(AppDbContext db, string name)
+    public static async Task<Player?> FindAsync(AppDbContext db, string name)
     {
         var clean = Clean(name);
         if (clean is null) return null;
@@ -173,7 +190,7 @@ public static partial class PlayerEndpoints
         return await db.Players.FirstOrDefaultAsync(p => p.NormalizedName == normalized);
     }
 
-    private static async Task<Player?> GetOrCreateAsync(AppDbContext db, string name)
+    public static async Task<Player?> GetOrCreateAsync(AppDbContext db, string name)
     {
         var clean = Clean(name);
         if (clean is null) return null;

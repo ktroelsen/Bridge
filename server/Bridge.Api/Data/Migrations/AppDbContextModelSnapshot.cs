@@ -17,10 +17,54 @@ namespace Bridge.Api.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.13");
 
+            modelBuilder.Entity("Bridge.Api.Data.Challenge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NumbersJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("Challenges");
+                });
+
             modelBuilder.Entity("Bridge.Api.Data.GameRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ChallengeId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Contract")
@@ -71,6 +115,10 @@ namespace Bridge.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PlayerId", "FinishedAt");
+
+                    b.HasIndex("ChallengeId", "PlayerId", "Number")
+                        .IsUnique()
+                        .HasFilter("ChallengeId IS NOT NULL");
 
                     b.ToTable("Games");
                 });
@@ -129,8 +177,24 @@ namespace Bridge.Api.Data.Migrations
                     b.ToTable("Players");
                 });
 
+            modelBuilder.Entity("Bridge.Api.Data.Challenge", b =>
+                {
+                    b.HasOne("Bridge.Api.Data.Player", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+                });
+
             modelBuilder.Entity("Bridge.Api.Data.GameRecord", b =>
                 {
+                    b.HasOne("Bridge.Api.Data.Challenge", null)
+                        .WithMany()
+                        .HasForeignKey("ChallengeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Bridge.Api.Data.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")

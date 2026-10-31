@@ -203,3 +203,44 @@ export interface Stats {
   byLevel: StatsGroup[];
   recent: GameRecord[];
 }
+
+export type ChallengeMode = 'mini' | 'full';
+
+export interface BoardResult {
+  name: string;
+  contract: string | null;
+  declarer: Seat | '' | null;
+  declarerTricks: number | null;
+  made: boolean | null;
+  scoreNorthSouth: number | null;
+}
+
+export interface Challenge {
+  code: string;
+  mode: ChallengeMode;
+  level: BotLevel;
+  createdBy: string;
+  createdAt: string;
+  boards: { index: number; number: number; playedByViewer: boolean; results: BoardResult[] }[];
+  standings: { name: string; played: number; compared: number; totalScore: number; percent: number | null }[];
+}
+
+export interface ChallengeSummary {
+  code: string;
+  mode: ChallengeMode;
+  level: BotLevel;
+  createdBy: string;
+  createdAt: string;
+  games: number;
+  playedByMe: number;
+  players: number;
+}
+
+/** A challenge deal being played: which challenge, which deal and at what level. */
+export interface ChallengeGame {
+  code: string;
+  number: number;
+  index: number;
+  count: number;
+  level: BotLevel;
+}

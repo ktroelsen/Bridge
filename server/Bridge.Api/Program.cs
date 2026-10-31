@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Bridge.Api;
+using Bridge.Api.Challenges;
 using Bridge.Api.Data;
 using Bridge.Api.Players;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,7 @@ app.MapGameEndpoints();
 app.MapQuizEndpoints();
 app.MapAnalysisEndpoints();
 app.MapPlayerEndpoints();
+app.MapChallengeEndpoints();
 
 // SPA fallback after the API, so it never shadows it.
 app.MapFallbackToFile("index.html");
